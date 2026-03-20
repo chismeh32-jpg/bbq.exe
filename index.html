@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Party Games">
+<link rel="apple-touch-icon" href="./icono.png">
+<link rel="icon" type="image/png" href="./icono.png">
+<link rel="manifest" href="./manifest.json">
+<title>Party Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c26;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.18);
+    --text: #f0f0f5;
+    --muted: rgba(240,240,245,0.45);
+    --hint: rgba(240,240,245,0.2);
+    --imp: #7c6af7;
+    --imp-bg: rgba(124,106,247,0.12);
+    --nunca: #2ecf9a;
+    --nunca-bg: rgba(46,207,154,0.1);
+    --prob: #f76a6a;
+    --prob-bg: rgba(247,106,106,0.1);
+    --hot: #ff8c42;
+    --hot-bg: rgba(255,140,66,0.1);
+    --ruleta: #f7c948;
+    --ruleta-bg: rgba(247,201,72,0.1);
+    --verd: #5bc4f7;
+    --verd-bg: rgba(91,196,247,0.1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh; overflow-x: hidden;
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-top: env(safe-area-inset-top);
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.7;
+  }
+  #app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 28px 20px 80px; padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); }
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeUp 0.28s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── HEADER ── */
+  .game-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .back-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; font-size: 13px; cursor: pointer; color: var(--muted); font-family: 'DM Sans', sans-serif; transition: color 0.15s, border-color 0.15s; }
+  .back-btn:hover, .back-btn:active { color: var(--text); border-color: var(--border2); }
+  .game-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); }
+
+  /* ── INPUTS ── */
+  .section-label { font-size: 12px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; margin-bottom: 10px; display: block; }
+  .input-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  input[type=text] { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; color: var(--text); font-size: 15px; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s; }
+  input[type=text]:focus { border-color: var(--border2); }
+  input[type=text]::placeholder { color: var(--hint); }
+  .add-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 11px 16px; color: var(--text); font-size: 14px; cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap; transition: border-color 0.2s; }
+  .add-btn:hover { border-color: var(--border2); }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; min-height: 10px; }
+  .tag { background: var(--surface2); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; font-size: 13px; display: flex; align-items: center; gap: 6px; color: var(--text); }
+  .tag-x { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 0; line-height: 1; }
+
+  /* ── BUTTONS ── */
+  .action-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.2s, transform 0.12s; letter-spacing: 0.02em; }
+  .action-btn:active { transform: scale(0.97); }
+  .action-btn:disabled { opacity: 0.22; cursor: not-allowed; transform: none; }
+  .btn-imp { background: var(--imp); color: #fff; }
+  .btn-nunca { background: var(--nunca); color: #051a11; }
+  .btn-prob { background: var(--prob); color: #fff; }
+  .btn-ruleta { background: var(--ruleta); color: #1a1400; }
+  .btn-verd { background: var(--verd); color: #031520; }
+
+  /* ── INSTR ── */
+  .instr { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 13px 16px; font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 20px; }
+
+  /* ── BIG CARD ── */
+  .big-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 32px 24px; min-height: 195px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative; margin-bottom: 16px; }
+  .card-pill { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 14px; border-radius: 999px; margin-bottom: 16px; }
+  .pill-imp { background: var(--imp-bg); color: var(--imp); border: 1px solid rgba(124,106,247,0.25); }
+  .pill-nunca { background: var(--nunca-bg); color: var(--nunca); border: 1px solid rgba(46,207,154,0.25); }
+  .pill-prob { background: var(--prob-bg); color: var(--prob); border: 1px solid rgba(247,106,106,0.25); }
+  .pill-verd { background: var(--verd-bg); color: var(--verd); border: 1px solid rgba(91,196,247,0.25); }
+  .card-text { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: var(--text); line-height: 1.4; }
+  .card-sub { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+  .card-count { font-size: 12px; color: var(--hint); text-align: right; margin-bottom: 8px; }
+  .eye-badge { position: absolute; top: 14px; right: 16px; font-size: 11px; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 3px 10px; cursor: pointer; }
+  .drinks-note { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 14px; }
+
+  /* ── VOTE ── */
+  .reveal-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 16px; text-align: center; margin-bottom: 16px; }
+  .reveal-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 6px; }
+  .reveal-word { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--text); }
+  .vote-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .vote-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; text-align: left; cursor: pointer; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; transition: all 0.13s; }
+  .vote-btn.sel { border-color: var(--imp); background: var(--imp-bg); color: var(--imp); }
+
+  /* ── RESULT ── */
+  .result-card { border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 16px; }
+  .result-win { background: rgba(46,207,154,0.08); border: 1px solid rgba(46,207,154,0.3); }
+  .result-lose { background: rgba(247,106,106,0.08); border: 1px solid rgba(247,106,106,0.3); }
+  .result-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+  .result-win .result-title { color: var(--nunca); }
+  .result-lose .result-title { color: var(--prob); }
+  .result-desc { font-size: 14px; }
+  .result-win .result-desc { color: rgba(46,207,154,0.7); }
+  .result-lose .result-desc { color: rgba(247,106,106,0.7); }
+  .score-section { margin-bottom: 16px; }
+  .score-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 10px; }
+  .score-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .score-pts { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--imp); }
+
+  /* ── IMPOSTOR CARD ── */
+  .cat-big { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; }
+  .imp-warn { color: var(--prob); font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+  .imp-role { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+
+  /* ── RULETA ── */
+  #wheel-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+  #wheel-canvas { display: block; }
+  #spin-btn { margin-top: 16px; width: 100%; padding: 14px; border-radius: 12px; border: none; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; cursor: pointer; background: var(--ruleta); color: #1a1400; transition: opacity 0.2s, transform 0.12s; letter-spacing: 0.02em; }
+  #spin-btn:active { transform: scale(0.97); }
+  #spin-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+  .winner-box { background: var(--ruleta-bg); border: 1px solid rgba(247,201,72,0.35); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 16px; }
+  .winner-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(247,201,72,0.6); margin-bottom: 8px; }
+  .winner-name { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--ruleta); }
+
+  /* ── VERDAD O RETO ── */
+  .vr-player-indicator { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; text-align: center; margin-bottom: 16px; font-size: 14px; color: var(--muted); }
+  .vr-player-indicator strong { color: var(--text); font-size: 16px; }
+  .vr-choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .vr-choice-btn { padding: 24px 16px; border-radius: 16px; border: none; font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; cursor: pointer; transition: opacity 0.2s, transform 0.12s; }
+  .vr-choice-btn:active { transform: scale(0.96); }
+  .vr-verdad { background: var(--verd); color: #031520; }
+  .vr-reto { background: var(--prob); color: #fff; }
+  .vr-pass { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; padding: 10px; border-radius: 10px; width: 100%; cursor: pointer; margin-bottom: 14px; }
+
+  /* ── MENU ── */
+  .menu-logo { font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 800; letter-spacing: -1px; background: linear-gradient(135deg, #7c6af7, #f76a6a, #ff8c42); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .menu-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; margin-top: 3px; }
+  .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .mode-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px 16px; cursor: pointer; transition: border-color 0.2s, transform 0.13s; display: flex; flex-direction: column; gap: 10px; }
+  .mode-card:active { transform: scale(0.97); border-color: var(--border2); }
+  .mode-emoji { font-size: 26px; }
+  .mode-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.3; }
+  .mode-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+  /* ── SETUP PANEL (players) ── */
+  .setup-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 28px; }
+  .setup-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+  .player-count { font-size: 12px; color: var(--muted); margin-left: 8px; font-weight: 400; }
+
+  /* ── IOS HINT ── */
+  .ios-hint { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: 12px; color: var(--muted); line-height: 1.6; margin-top: 20px; text-align: center; }
+  .ios-hint strong { color: var(--text); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ════════ INICIO — Panel de jugadores ════════ -->
+  <div id="screen-home" class="screen active">
+    <div style="margin-bottom:24px;">
+      <div class="menu-logo">Party Games 🎉</div>
+      <p class="menu-sub">Añade a todos antes de empezar</p>
+    </div>
+
+    <div class="setup-panel">
+      <div class="setup-title">Jugadores <span class="player-count" id="home-player-count">0</span></div>
+      <div class="input-row">
+        <input type="text" id="home-input" placeholder="Nombre..." onkeydown="if(event.key==='Enter')homeAddPlayer()">
+        <button class="add-btn" onclick="homeAddPlayer()">+ Añadir</button>
+      </div>
+      <div class="tags" id="home-tags"></div>
+    </div>
+
+    <div class="mode-grid">
+      <div class="mode-card" onclick="startMode('impostor')">
+        <div class="mode-emoji">🕵️</div>
+        <div class="mode-name">El Impostor</div>
+        <div class="mode-desc">Solo sabe la categoría</div>
+      </div>
+      <div class="mode-card" onclick="startMode('nunca')">
+        <div class="mode-emoji">🍹</div>
+        <div class="mode-name">Yo Nunca</div>
+        <div class="mode-desc">Confiesa o bebe</div>
+      </div>
+      <div class="mode-card" onclick="startMode('probable')">
+        <div class="mode-emoji">🎯</div>
+        <div class="mode-name">¿Quién es más probable?</div>
+        <div class="mode-desc">Señala al culpable</div>
+      </div>
+      <div class="mode-card" onclick="startMode('ruleta')">
+        <div class="mode-emoji">🎰</div>
+        <div class="mode-name">Ruleta</div>
+        <div class="mode-desc">Gira y elige a alguien</div>
+      </div>
+      <div class="mode-card" onclick="startMode('verdad')" style="grid-column:span 2;">
+        <div class="mode-emoji">🔥</div>
+        <div class="mode-name">Verdad o Reto</div>
+        <div class="mode-desc">Por turnos — cada uno elige</div>
+      </div>
+      <div class="mode-card" onclick="startMode('yosino')" style="grid-column:span 2;">
+        <div class="mode-emoji">🙋</div>
+        <div class="mode-name">Yo sí / Yo no</div>
+        <div class="mode-desc">Red flags, preferencias y debates — para romper el hielo</div>
+      </div>
+    </div>
+
+    <div class="ios-hint">
+      <strong>iPhone:</strong> Abre este archivo en Safari → pulsa <strong>Compartir</strong> → <strong>Añadir a pantalla de inicio</strong> para tenerlo como app
+    </div>
+  </div>
+
+  <!-- ════════ IMPOSTOR SETUP ════════ -->
+  <div id="screen-impostor-setup" class="screen">
+    <div class="game-header">
+      <button class="back-btn" onclick="goHome()">← Volver</button>
+      <span class="game-title">🕵️ El Impostor</span>
+    </div>
+    <div class="instr">Todos ven la palabra secreta menos el impostor, que <strong style="color:var(--text)">solo ve la categoría</strong>. Dan pistas y votan quién creen que es el impostor.</div>
+    <div class="tags" id="imp-player-preview" style="margin-bottom:20px;"></div>
+    <button class="action-btn btn-imp" id="imp-start" onclick="startImpostor()">Empezar juego</button>
+  </div>
+
+  <!-- ════════ IMPOSTOR CARDS ════════ -->
+  <div id="screen-impostor-cards" class="screen">
+    <div class="game-header">
+      <button class="back-btn" onclick="goHome()">Salir</button>
+      <span class="game-title">🕵️ Ronda <span id="imp-round-num">1</span></span>
+    </div>
+    <div id="imp-card-container"></div>
+  </div>
+
+  <!-- ════════ IMPOSTOR VOTE ════════ -->
+  <div id="screen-impostor-vote" class="screen">
+    <div class="game-header">
+      <button class="back-btn" onclick="goHome()">Salir</button>
+      <span class="game-title">🕵️ Votación</span>
+    </div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:16px;">Cada jugador da una pista sin decir la palabra. ¿Quién es el impostor?</p>
+    <div class="reveal-box">
+      <p class="reveal-label">Categoría de esta ronda</p>
+      <p class="reveal-word" id="imp-cat-reveal">—</p>
+    </div>
+    <div class="vote-list" id="imp-vote-list"></div>
+    <button class="action-btn btn-imp" onclick="revealImpostor()">Revelar resultado</button>
+  </div>
+
+  <!-- ════════ IMPOSTOR RESULT ════════ -->
+  <div id="screen-impostor-result" class="screen">
+    <div class="game-header">
+      <button class="back-btn" onclick="goHome()">Salir</button>
+      <span class="game-title">🕵️ Resultado</span>
+    </div>
+    <div id="imp-result-box"></div>
+    <div class="reveal-box" style="margin-bottom:16px;">
+      <p class="reveal-label">La palabra secreta era</p>
+      <p class="reveal-word" id="imp-word-reveal" style="color:var(--nunca)">—</p>
+    </div>
+    <div class="score-section" id="imp-scores"></div>
+    <button class="action-btn btn-imp" onclick="nextImpostorRound()">Siguiente ronda</button>
+  </div>
+
+  <!-- ════════ YO NUNCA ════════ -->
+  <div id="screen-nunca" class="screen">
+    <div class="game-header">
+      <button class="back-btn" onclick="goHome()">Salir</button>
+      <span class="game-title">🍹 Yo Nunca</span>
+    </div>
+    <div class="card-count" id="nunca-count">Carta 1 de 180</div>
+    <div class="big-card">
+      <span class="card-pill pill-nunca" id="nunca-pill">Yo nunca...</span>
+      <p class="card-text" id="nunca-text">—</p>
+    </div>
+    <p class="drinks-note">🍹 Si lo has hecho → bebe</p>
+    <button class="action-btn btn-nunca" onclick="nextNunca()">Siguiente →</button>
+  </div>
+
+  <!-- ════════ PROBABLE ════════ -->
+  <div id="screen-probable" class="screen">
+    <div class="game-header">
+      <button class="back-btn" onclick="goHome()">Salir</button>
+      <span class="game-title">🎯 ¿Quién es más probable?</span>
+    </div>
+    <div class="card-count" id="prob-count">Carta 1 de 180</div>
+    <div class="big-card">
+      <span class="card-pill pill-prob" id="prob-pill">¿Quién es más probable que...</span>
+      <p class="card-text" id="prob-text">—</p>
+    </div>
+    <button class="action-btn btn-prob" onclick="nextProb()" style="margin-top:6px;">Siguiente →</button>
+  </div>
+
+  <!-- ════════ RULETA ════════ -->
+  <div id="screen-ruleta" class="screen">
+    <div class="game-header">
+      <button class="back-btn" onclick="goHome()">Salir</button>
+      <span class="game-title">🎰 Ruleta</span>
+    </div>
+    <div id="wheel-wrap">
+      <canvas id="wheel-canvas" width="320" height="320"></canvas>
+      <button id="spin-btn" onclick="spinWheel()">¡Girar! 🎰</button>
+    </div>
+    <div id="winner-display"></div>
+  </div>
+
+  <!-- ════════ VERDAD O RETO ════════ -->
+  <div id="screen-verdad" class="screen">
+    <div class="game-header">
+      <button class="back-btn" onclick="goHome()">Salir</button>
+      <span class="game-title">🔥 Verdad o Reto</span>
+    </div>
+    <div class="vr-player-indicator" id="vr-player-box">
+      <span>Le toca a</span><br><strong id="vr-current-player">—</strong>
+    </div>
+    <div id="vr-choice-screen">
+      <div class="vr-choice-grid">
+        <button class="vr-choice-btn vr-verdad" onclick="vrPick('verdad')">Verdad 💬</button>
+        <button class="vr-choice-btn vr-reto" onclick="vrPick('reto')">Reto 🔥</button>
+      </div>
+      <button class="vr-pass" onclick="vrPass()">Saltar turno →</button>
+    </div>
+    <div id="vr-card-screen" style="display:none;">
+      <div class="big-card">
+        <span class="card-pill" id="vr-pill">Verdad</span>
+        <p class="card-text" id="vr-card-text">—</p>
+      </div>
+      <button class="action-btn" id="vr-next-btn" onclick="vrNext()">Siguiente jugador →</button>
+    </div>
+  </div>
+
+  <!-- ════════ YO SÍ / YO NO ════════ -->
+  <div id="screen-yosino" class="screen">
+    <div class="game-header">
+      <button class="back-btn" onclick="goHome()">Salir</button>
+      <span class="game-title">🙋 Yo sí / Yo no</span>
+    </div>
+    <div class="instr">Se lee la pregunta en voz alta. Cada uno dice <strong style="color:#2ecf9a">Yo sí</strong> o <strong style="color:#f76a6a">Yo no</strong> — y si alguien discrepa, debate. El que esté solo/a en su respuesta bebe.</div>
+    <div class="card-count" id="yosino-count">Pregunta 1</div>
+    <div class="big-card" style="min-height:220px;">
+      <span class="card-pill" id="yosino-pill" style="background:rgba(247,201,72,0.12);color:#f7c948;border:1px solid rgba(247,201,72,0.3);">🙋 Yo sí / Yo no</span>
+      <p class="card-text" id="yosino-text">—</p>
+      <p class="card-sub" id="yosino-category" style="margin-top:12px;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;"></p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      <div style="background:rgba(46,207,154,0.1);border:1px solid rgba(46,207,154,0.25);border-radius:12px;padding:14px;text-align:center;">
+        <p style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#2ecf9a;">Yo sí 🙋</p>
+      </div>
+      <div style="background:rgba(247,106,106,0.1);border:1px solid rgba(247,106,106,0.25);border-radius:12px;padding:14px;text-align:center;">
+        <p style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#f76a6a;">Yo no 🙅</p>
+      </div>
+    </div>
+    <button class="action-btn btn-ruleta" onclick="nextYosino()">Siguiente →</button>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  GLOBAL PLAYERS
+// ═══════════════════════════════════════════
+let globalPlayers = ['Geroy', 'Judith', 'Lara', 'Xerxi', 'Bruno'];
+
+function homeAddPlayer() {
+  const inp = document.getElementById('home-input');
+  const n = inp.value.trim();
+  if (!n || globalPlayers.includes(n)) { inp.value = ''; return; }
+  globalPlayers.push(n);
+  inp.value = '';
+  renderHomeTags();
+}
+
+function removeHomePlayer(n) {
+  globalPlayers = globalPlayers.filter(p => p !== n);
+  renderHomeTags();
+}
+
+function renderHomeTags() {
+  document.getElementById('home-tags').innerHTML = globalPlayers.map(p =>
+    `<div class="tag">${p}<button class="tag-x" onclick="removeHomePlayer('${p}')">×</button></div>`
+  ).join('');
+  document.getElementById('home-player-count').textContent = globalPlayers.length;
+}
+
+function shuffle(a) {
+  const b = [...a];
+  for (let i = b.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [b[i], b[j]] = [b[j], b[i]];
+  }
+  return b;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goHome() { showScreen('screen-home'); }
+
+// Render initial players on load
+document.addEventListener('DOMContentLoaded', renderHomeTags);
+
+function startMode(mode) {
+  if (mode === 'impostor') {
+    if (globalPlayers.length < 3) { alert('Necesitas al menos 3 jugadores para El Impostor'); return; }
+    // show preview
+    document.getElementById('imp-player-preview').innerHTML = globalPlayers.map(p =>
+      `<div class="tag">${p}</div>`).join('');
+    showScreen('screen-impostor-setup');
+  }
+  if (mode === 'nunca') { initNunca(); showScreen('screen-nunca'); }
+  if (mode === 'probable') { initProb(); showScreen('screen-probable'); }
+  if (mode === 'ruleta') { initWheel(); showScreen('screen-ruleta'); }
+  if (mode === 'verdad') {
+    if (globalPlayers.length < 2) { alert('Necesitas al menos 2 jugadores'); return; }
+    initVerdad(); showScreen('screen-verdad');
+  }
+  if (mode === 'yosino') { initYosino(); showScreen('screen-yosino'); }
+}
+
+// ═══════════════════════════════════════════
+//  IMPOSTOR
+// ═══════════════════════════════════════════
+const IMP_WORDS = [
+  {cat:'YouTubers españoles',word:'Vegeta777'},{cat:'YouTubers españoles',word:'TheGrefg'},
+  {cat:'YouTubers españoles',word:'ElRubius'},{cat:'YouTubers españoles',word:'AuronPlay'},
+  {cat:'YouTubers españoles',word:'Willyrex'},{cat:'YouTubers españoles',word:'Makiman'},
+  {cat:'YouTubers españoles',word:'Xokas'},{cat:'YouTubers españoles',word:'Luzu'},
+  {cat:'YouTubers españoles',word:'Ibai'},{cat:'YouTubers españoles',word:'Perxitaa'},
+  {cat:'Streamers internacionales',word:'xQc'},{cat:'Streamers internacionales',word:'Pokimane'},
+  {cat:'Streamers internacionales',word:'Ninja'},{cat:'Streamers internacionales',word:'MrBeast'},
+  {cat:'Redes sociales',word:'TikTok'},{cat:'Redes sociales',word:'Instagram'},
+  {cat:'Redes sociales',word:'Twitter/X'},{cat:'Redes sociales',word:'BeReal'},
+  {cat:'Redes sociales',word:'Snapchat'},{cat:'Redes sociales',word:'Threads'},
+  {cat:'Videojuegos',word:'Minecraft'},{cat:'Videojuegos',word:'Fortnite'},
+  {cat:'Videojuegos',word:'Among Us'},{cat:'Videojuegos',word:'GTA V'},
+  {cat:'Videojuegos',word:'Valorant'},{cat:'Videojuegos',word:'League of Legends'},
+  {cat:'Videojuegos',word:'Roblox'},{cat:'Videojuegos',word:'FIFA'},
+  {cat:'Videojuegos',word:'Call of Duty'},{cat:'Videojuegos',word:'Apex Legends'},
+  {cat:'Videojuegos',word:'Clash Royale'},{cat:'Videojuegos',word:'Pokémon GO'},
+  {cat:'Aplicaciones del móvil',word:'WhatsApp'},{cat:'Aplicaciones del móvil',word:'Telegram'},
+  {cat:'Aplicaciones del móvil',word:'Spotify'},{cat:'Aplicaciones del móvil',word:'Shazam'},
+  {cat:'Aplicaciones del móvil',word:'Duolingo'},{cat:'Aplicaciones del móvil',word:'Notion'},
+  {cat:'Aplicaciones del móvil',word:'Google Maps'},{cat:'Aplicaciones del móvil',word:'Cabify'},
+  {cat:'Marcas de ropa',word:'Nike'},{cat:'Marcas de ropa',word:'Adidas'},
+  {cat:'Marcas de ropa',word:'Zara'},{cat:'Marcas de ropa',word:'Stradivarius'},
+  {cat:'Marcas de ropa',word:'Pull&Bear'},{cat:'Marcas de ropa',word:'Supreme'},
+  {cat:'Marcas de ropa',word:'Bershka'},{cat:'Marcas de ropa',word:'Lefties'},
+  {cat:'Comida rápida',word:"McDonald's"},{cat:'Comida rápida',word:'Burger King'},
+  {cat:'Comida rápida',word:'KFC'},{cat:'Comida rápida',word:"Domino's Pizza"},
+  {cat:'Comida rápida',word:'Telepizza'},{cat:'Comida rápida',word:'Five Guys'},
+  {cat:'Bebidas',word:'Coca-Cola'},{cat:'Bebidas',word:'Pepsi'},
+  {cat:'Bebidas',word:'Fanta'},{cat:'Bebidas',word:'Red Bull'},
+  {cat:'Bebidas',word:'Monster'},{cat:'Bebidas',word:'Aquarius'},
+  {cat:'Plataformas streaming',word:'Netflix'},{cat:'Plataformas streaming',word:'HBO Max'},
+  {cat:'Plataformas streaming',word:'Disney+'},{cat:'Plataformas streaming',word:'Prime Video'},
+  {cat:'Plataformas streaming',word:'Twitch'},{cat:'Plataformas streaming',word:'Apple TV+'},
+  {cat:'Artistas urbanos',word:'Bad Bunny'},{cat:'Artistas urbanos',word:'J Balvin'},
+  {cat:'Artistas urbanos',word:'Quevedo'},{cat:'Artistas urbanos',word:'Bizarrap'},
+  {cat:'Artistas urbanos',word:'Myke Towers'},{cat:'Artistas urbanos',word:'Rauw Alejandro'},
+  {cat:'Artistas urbanos',word:'Karol G'},{cat:'Artistas urbanos',word:'Feid'},
+  {cat:'Artistas urbanos',word:'Anuel AA'},{cat:'Artistas urbanos',word:'Jhayco'},
+  {cat:'Series españolas',word:'La Casa de Papel'},{cat:'Series españolas',word:'Élite'},
+  {cat:'Series españolas',word:'Vis a Vis'},{cat:'Series españolas',word:'El Pueblo'},
+  {cat:'Series internacionales',word:'Breaking Bad'},{cat:'Series internacionales',word:'Stranger Things'},
+  {cat:'Series internacionales',word:'Game of Thrones'},{cat:'Series internacionales',word:'Peaky Blinders'},
+  {cat:'Series internacionales',word:'Black Mirror'},{cat:'Series internacionales',word:'Los Bridgerton'},
+  {cat:'Deportistas',word:'Messi'},{cat:'Deportistas',word:'Cristiano Ronaldo'},
+  {cat:'Deportistas',word:'Neymar'},{cat:'Deportistas',word:'Mbappé'},
+  {cat:'Deportistas',word:'Rafa Nadal'},{cat:'Deportistas',word:'Carlos Alcaraz'},
+  {cat:'Deportistas',word:'LeBron James'},{cat:'Deportistas',word:'Alexia Putellas'},
+  {cat:'Emojis populares',word:'💀'},{cat:'Emojis populares',word:'😭'},
+  {cat:'Emojis populares',word:'🔥'},{cat:'Emojis populares',word:'🫠'},
+  {cat:'Emojis populares',word:'🥹'},{cat:'Emojis populares',word:'💅'},
+  {cat:'Consolas',word:'PlayStation 5'},{cat:'Consolas',word:'Xbox Series X'},
+  {cat:'Consolas',word:'Nintendo Switch'},{cat:'Consolas',word:'Steam Deck'},
+  {cat:'Coches de lujo',word:'Ferrari'},{cat:'Coches de lujo',word:'Lamborghini'},
+  {cat:'Coches de lujo',word:'Porsche'},{cat:'Coches de lujo',word:'Bugatti'},
+  {cat:'Destinos de fiesta',word:'Ibiza'},{cat:'Destinos de fiesta',word:'Benidorm'},
+  {cat:'Destinos de fiesta',word:'Magaluf'},{cat:'Destinos de fiesta',word:'Salou'},
+  {cat:'Snacks',word:'Doritos'},{cat:'Snacks',word:'Cheetos'},
+  {cat:'Snacks',word:'Pringles'},{cat:'Snacks',word:'Oreo'},
+  {cat:'Snacks',word:'Ganchitos'},{cat:'Snacks',word:'Ruffles'},
+  {cat:'Zapatillas',word:'Air Jordan'},{cat:'Zapatillas',word:'Yeezy'},
+  {cat:'Zapatillas',word:'New Balance 550'},{cat:'Zapatillas',word:'Air Force 1'},
+  {cat:'Zapatillas',word:'Converse All Star'},{cat:'Zapatillas',word:'Vans Old Skool'},
+  {cat:'Cosas de fiesta',word:'Chupito'},{cat:'Cosas de fiesta',word:'Botellón'},
+  {cat:'Cosas de fiesta',word:'Litrona'},{cat:'Cosas de fiesta',word:'Combinado'},
+  {cat:'Cosas de fiesta',word:'After'},{cat:'Cosas de fiesta',word:'Previo'},
+  {cat:'Memes',word:'Doge'},{cat:'Memes',word:'Cheems'},
+  {cat:'Memes',word:'Pepe the Frog'},{cat:'Memes',word:'Trollface'},
+  // Nuevas categorías
+  {cat:'Marcas de móviles',word:'iPhone'},{cat:'Marcas de móviles',word:'Samsung'},
+  {cat:'Marcas de móviles',word:'Xiaomi'},{cat:'Marcas de móviles',word:'OnePlus'},
+  {cat:'Marcas de móviles',word:'Google Pixel'},{cat:'Marcas de móviles',word:'Huawei'},
+  {cat:'Festivales de música',word:'Primavera Sound'},{cat:'Festivales de música',word:'Coachella'},
+  {cat:'Festivales de música',word:'Tomorrowland'},{cat:'Festivales de música',word:'Mad Cool'},
+  {cat:'Festivales de música',word:'Lollapalooza'},{cat:'Festivales de música',word:'Arenal Sound'},
+  {cat:'Cocteles y bebidas',word:'Gin Tonic'},{cat:'Cocteles y bebidas',word:'Mojito'},
+  {cat:'Cocteles y bebidas',word:'Sangría'},{cat:'Cocteles y bebidas',word:'Aperol Spritz'},
+  {cat:'Cocteles y bebidas',word:'Caipirinha'},{cat:'Cocteles y bebidas',word:'Margarita'},
+  {cat:'Destinos de viaje',word:'Bangkok'},{cat:'Destinos de viaje',word:'Nueva York'},
+  {cat:'Destinos de viaje',word:'Tokyo'},{cat:'Destinos de viaje',word:'Amsterdam'},
+  {cat:'Destinos de viaje',word:'Lisboa'},{cat:'Destinos de viaje',word:'Bali'},
+  {cat:'Personajes de serie',word:'Walter White'},{cat:'Personajes de serie',word:'Tony Soprano'},
+  {cat:'Personajes de serie',word:'Eleven'},{cat:'Personajes de serie',word:'Daenerys'},
+  {cat:'Personajes de serie',word:'Don Draper'},{cat:'Personajes de serie',word:'Fleabag'},
+  {cat:'Artistas pop internacionales',word:'Taylor Swift'},{cat:'Artistas pop internacionales',word:'Beyoncé'},
+  {cat:'Artistas pop internacionales',word:'Billie Eilish'},{cat:'Artistas pop internacionales',word:'The Weeknd'},
+  {cat:'Artistas pop internacionales',word:'Dua Lipa'},{cat:'Artistas pop internacionales',word:'Harry Styles'},
+  {cat:'Marcas de lujo',word:'Louis Vuitton'},{cat:'Marcas de lujo',word:'Gucci'},
+  {cat:'Marcas de lujo',word:'Balenciaga'},{cat:'Marcas de lujo',word:'Versace'},
+  {cat:'Marcas de lujo',word:'Prada'},{cat:'Marcas de lujo',word:'Chanel'},
+  {cat:'Apps de citas',word:'Tinder'},{cat:'Apps de citas',word:'Bumble'},
+  {cat:'Apps de citas',word:'Hinge'},{cat:'Apps de citas',word:'Badoo'},
+  {cat:'Apps de citas',word:'Grindr'},{cat:'Apps de citas',word:'Once'},
+  {cat:'Comida española',word:'Tortilla de patatas'},{cat:'Comida española',word:'Paella'},
+  {cat:'Comida española',word:'Jamón ibérico'},{cat:'Comida española',word:'Gazpacho'},
+  {cat:'Comida española',word:'Croquetas'},{cat:'Comida española',word:'Patatas bravas'},
+  {cat:'Películas de culto',word:'El Club de la Lucha'},{cat:'Películas de culto',word:'Pulp Fiction'},
+  {cat:'Películas de culto',word:'Matrix'},{cat:'Películas de culto',word:'Interstellar'},
+  {cat:'Películas de culto',word:'El Padrino'},{cat:'Películas de culto',word:'Joker'},
+];
+
+const impState = { players:[], impostor:-1, word:'', cat:'', voted:null, scores:{}, round:1, idx:0 };
+let usedImp = [];
+
+function startImpostor() {
+  impState.players = [...globalPlayers];
+  impState.scores = {};
+  impState.players.forEach(p => impState.scores[p] = 0);
+  impState.round = 1;
+  newImpostorRound();
+}
+
+function newImpostorRound() {
+  let av = IMP_WORDS.filter(w => !usedImp.includes(w.word));
+  if (!av.length) { usedImp = []; av = IMP_WORDS; }
+  const pick = av[Math.floor(Math.random() * av.length)];
+  usedImp.push(pick.word);
+  impState.word = pick.word; impState.cat = pick.cat;
+  impState.impostor = Math.floor(Math.random() * impState.players.length);
+  impState.voted = null; impState.idx = 0;
+  document.getElementById('imp-round-num').textContent = impState.round;
+  renderImpCard(); showScreen('screen-impostor-cards');
+}
+
+function renderImpCard() {
+  const i = impState.idx, players = impState.players, isImp = (i === impState.impostor);
+  document.getElementById('imp-card-container').innerHTML = `
+    <p style="font-size:14px;color:var(--muted);margin-bottom:16px;text-align:center;">
+      Pasa el teléfono a <strong style="color:var(--text)">${players[i]}</strong>
+    </p>
+    <div class="big-card" id="imp-flip" onclick="flipImp()" style="cursor:pointer;">
+      <span class="card-pill pill-imp">Toca para ver tu carta</span>
+      <div id="imp-content" style="filter:blur(10px);text-align:center;">
+        ${isImp
+          ? `<p class="imp-role" id="imp-role-text">Toca para ver tu carta</p><p class="cat-big" id="imp-main-text" style="color:var(--muted)">• • • • •</p><p class="card-sub" id="imp-sub-text">Categoría: ${impState.cat}</p>`
+          : `<p class="imp-role" id="imp-role-text">Toca para ver tu carta</p><p class="cat-big" id="imp-main-text" style="color:var(--muted)">• • • • •</p><p class="card-sub" id="imp-sub-text">Categoría: ${impState.cat}</p>`
+        }
+      </div>
+      <span class="eye-badge" id="imp-eye">👁 ver</span>
+    </div>
+    <button class="action-btn btn-imp" id="imp-next-btn" style="opacity:0.25;" disabled onclick="nextImpPlayer()">
+      ${i < players.length - 1 ? 'Siguiente jugador →' : 'Todos listos → Votar'}
+    </button>`;
+}
+
+function flipImp() {
+  const btn = document.getElementById('imp-next-btn');
+  const eye = document.getElementById('imp-eye');
+  const card = document.getElementById('imp-flip');
+  const content = document.getElementById('imp-content');
+  const roleEl = document.getElementById('imp-role-text');
+  const mainEl = document.getElementById('imp-main-text');
+  const subEl = document.getElementById('imp-sub-text');
+  const isImp = impState.idx === impState.impostor;
+
+  // Show real content
+  if (isImp) {
+    roleEl.textContent = '⚠️ ERES EL IMPOSTOR';
+    roleEl.style.color = 'var(--prob)';
+    mainEl.textContent = impState.cat;
+    mainEl.style.color = 'var(--imp)';
+    subEl.textContent = 'Solo sabes la categoría — ¡da pistas sin revelar que no sabes la palabra!';
+  } else {
+    roleEl.textContent = 'La palabra secreta es:';
+    roleEl.style.color = '';
+    mainEl.textContent = impState.word;
+    mainEl.style.color = 'var(--nunca)';
+    subEl.textContent = 'Categoría: ' + impState.cat;
+  }
+  content.style.filter = 'none'; eye.textContent = '🙈 ocultar';
+
+  card.onclick = function () {
+    // Reset to identical placeholder
+    roleEl.textContent = 'Toca para ver tu carta';
+    roleEl.style.color = '';
+    mainEl.textContent = '• • • • •';
+    mainEl.style.color = 'var(--muted)';
+    subEl.textContent = 'Categoría: ' + impState.cat;
+    eye.textContent = '👁 ver';
+    card.onclick = flipImp; btn.disabled = false; btn.style.opacity = '1';
+  };
+  btn.disabled = false; btn.style.opacity = '1';
+}
+
+function nextImpPlayer() {
+  impState.idx++;
+  if (impState.idx >= impState.players.length) showImpVote(); else renderImpCard();
+}
+
+function showImpVote() {
+  document.getElementById('imp-cat-reveal').textContent = impState.cat;
+  document.getElementById('imp-vote-list').innerHTML = impState.players.map(p =>
+    `<button class="vote-btn" onclick="selectVote(this,'${p}')">${p}</button>`).join('');
+  showScreen('screen-impostor-vote');
+}
+
+function selectVote(el, n) {
+  document.querySelectorAll('#imp-vote-list .vote-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel'); impState.voted = n;
+}
+
+function revealImpostor() {
+  if (!impState.voted) return;
+  const imp = impState.players[impState.impostor], ok = impState.voted === imp;
+  document.getElementById('imp-result-box').innerHTML = ok
+    ? `<div class="result-card result-win"><p class="result-title">¡Impostor descubierto!</p><p class="result-desc">${imp} era el impostor. ¡El grupo gana!</p></div>`
+    : `<div class="result-card result-lose"><p class="result-title">¡El impostor escapó!</p><p class="result-desc">${imp} era el impostor pero votasteis a ${impState.voted}.</p></div>`;
+  if (ok) { impState.players.forEach(p => { if (p !== imp) impState.scores[p]++; }); }
+  else { impState.scores[imp] = (impState.scores[imp] || 0) + 2; }
+  document.getElementById('imp-word-reveal').textContent = impState.word;
+  const sorted = Object.entries(impState.scores).sort((a, b) => b[1] - a[1]);
+  document.getElementById('imp-scores').innerHTML = `<p class="score-title">Puntuación</p>` +
+    sorted.map(([p, s]) => `<div class="score-row"><span>${p}${p === imp ? ' 🕵️' : ''}</span><span class="score-pts">${s} pts</span></div>`).join('');
+  showScreen('screen-impostor-result');
+}
+
+function nextImpostorRound() { impState.round++; newImpostorRound(); }
+
+// ═══════════════════════════════════════════
+//  YO NUNCA — todas las cartas mezcladas
+// ═══════════════════════════════════════════
+const ALL_NUNCA = [
+  // Cotidiano / sin filtro
+  'he mentido para salir de una situación incómoda',
+  'he enviado un mensaje al destinatario equivocado',
+  'he fingido no ver una notificación para no responder',
+  'he comido en la cama',
+  'he llorado viendo una película de Disney',
+  'me he perdido en una ciudad desconocida',
+  'he bailado solo/a en casa',
+  'he cantado a pleno pulmón en el coche',
+  'he stalkeado el perfil de alguien más de 10 minutos',
+  'me he quedado dormido/a en el trabajo o en clase',
+  'he inventado una excusa ridícula para cancelar planes',
+  'he tenido un crush con alguien famoso/a',
+  'me he reído de algo inapropiado en un momento serio',
+  'he fingido que no me importaba algo que sí me importaba',
+  'he comido algo caído al suelo',
+  'he mentido sobre haber visto una película',
+  'he buscado mi nombre en Google',
+  'he llegado tarde por quedarme en la cama',
+  'he revisado el teléfono de otra persona',
+  'he fingido no hablar el idioma para evitar una conversación',
+  'he hecho una videollamada en pijama fingiendo estar vestido/a',
+  'me he hecho el dormido/a para no hablar con alguien',
+  'he comprado algo por impulso y lo he devuelto después',
+  'he olvidado el cumpleaños de alguien importante',
+  'he dado un like accidental en una foto muy antigua',
+  'me he inventado una alergia para no comer algo',
+  'he contestado "bien" cuando estaba todo menos bien',
+  'he pedido comida a domicilio estando solo/a entre semana',
+  'me he dormido durante una peli que yo mismo/a quería ver',
+  'he empezado a escribir un mensaje y lo he borrado 10 veces',
+  'he visto más de 5 episodios seguidos sin moverme del sofá',
+  'he mentido sobre haber leído un libro',
+  'he comprado algo para regalar y me lo he quedado',
+  'me he apuntado a un plan que odiaba para no quedar mal',
+  'he fingido estar ocupado/a cuando estaba tumbado/a',
+  'me he cortado el pelo yo mismo/a con resultados desastrosos',
+  'he mandado un meme inapropiado al grupo familiar',
+  'he empezado una dieta que duró menos de 24 horas',
+  'he fingido saber de algo del que no tenía ni idea',
+  'he rellenado el jabón del baño con agua para que durase más',
+  'he dicho "ya casi llego" estando aún en casa',
+  'he cancelado planes y luego posteado stories saliendo',
+  'he llorado en el baño para que nadie me vea',
+  'me he tropezado en público y he mirado al suelo como si fuera su culpa',
+  'he tirado algo roto intentando repararlo',
+  'he grabado un vídeo mío solo/a para ver cómo salgo',
+  'he reído la gracia de alguien sin haberla entendido',
+  'he seguido viendo una serie que odiaba para no admitirlo',
+  'he comido algo directamente del bote sin plato',
+  'he fingido no tener batería para no coger el teléfono',
+  'he guardado comida para luego y me la he comido antes de llegar a casa',
+  'me he apuntado al gimnasio y he ido menos de 5 veces',
+  'he comprado ropa que sabía que no me iba a poner',
+  'he mentido sobre lo que estaba haciendo cuando me preguntaron',
+  'he ignorado un correo importante durante semanas',
+  'he dormido con las luces encendidas sin querer',
+  'he hecho como que no veía a alguien en la calle para no saludar',
+  'he dicho que "ya llego" cuando ni siquiera había salido de casa',
+  'he mandado un mensaje de voz de más de 3 minutos',
+  'he puesto la alarma y me he vuelto a dormir 6 veces seguidas',
+  'he tenido conversaciones imaginarias en la ducha que me han emocionado',
+  'he practicado una conversación antes de tenerla y salió completamente diferente',
+  'he pasado la tarde entera en redes sin darme cuenta',
+  'he mentido sobre cuánto dinero gasto al mes',
+  'he probado la comida de otro sin permiso',
+  'he fingido que el móvil no tenía cobertura para no responder',
+  'he guardado un meme en el móvil que nunca le mandaré a nadie',
+  // Salseo / relaciones
+  'he mentido sobre cuántas personas he besado',
+  'he fingido tener pareja para rechazar a alguien',
+  'he leído conversaciones privadas de otra persona',
+  'he quedado con dos personas el mismo día sin que lo supieran',
+  'he tenido sentimientos por el ex de un/a amigo/a',
+  'he enviado una foto comprometida',
+  'he hecho ghosting a alguien después de varias citas',
+  'he liado algo con alguien del trabajo',
+  'me he besado con alguien de quien no recuerdo el nombre',
+  'he cancelado planes por quedarme con otra persona',
+  'he tenido sentimientos por alguien que ya tenía pareja',
+  'he ignorado a alguien que me gustaba para parecer interesante',
+  'he dicho "te quiero" y no lo sentía del todo',
+  'he borrado mensajes para que no los viera alguien',
+  'he fantaseado con alguien mientras estaba con otra persona',
+  'he fingido que una relación era algo que no era',
+  'me he arrepentido de algo que hice en una noche de fiesta',
+  'he vuelto con un ex que todo el mundo desaprobaba',
+  'he mandado un mensaje a un ex "sin querer"',
+  'he tenido rollos en más de un país',
+  'he guardado fotos de alguien que ya no está en mi vida',
+  'he mentido sobre dónde estaba una noche',
+  'he dado falsas esperanzas a alguien a propósito',
+  'me he puesto celoso/a sin razón real',
+  'he enviado mensajes en caliente que luego borré',
+  'me han dicho que soy demasiado intenso/a y lo entendí tarde',
+  'he desaparecido de la vida de alguien sin explicación',
+  'he tenido sentimientos por alguien que nunca lo supo',
+  'me han bloqueado sin saber muy bien por qué',
+  'he espiado las redes de alguien con quien tuve algo',
+  'he tenido un chat secreto que prefiero que nadie vea',
+  'he rechazado a alguien que me gustaba por miedo',
+  'he hecho algo solo porque me daba morbo que me pillaran',
+  'he liado algo con el mejor amigo/a de un ex',
+  'he creado un perfil falso para ver qué hacía alguien',
+  'he salido con alguien más para poner celoso/a a otra persona',
+  'me han pillado revisando el teléfono de alguien',
+  'he conocido a la familia de alguien con quien solo tenía un rollo',
+  'he visto el perfil de alguien más de 20 veces en un día',
+  'he mandado un audio comprometido al grupo equivocado',
+  'me han rechazado de una forma que todavía recuerdo',
+  'he tenido sentimientos que nunca dije por cobardía',
+  'me han pillado mintiendo en algo de pareja',
+  'he usado los celos como estrategia',
+  'he hecho algo vergonzoso delante de alguien que me gustaba',
+  'he visto el perfil de alguien que bloqueé con otra cuenta',
+  // Hot
+  'he tenido una aventura de una noche con alguien que conocí ese día',
+  'he mandado fotos o vídeos comprometidos que no debería',
+  'he hecho algo picante en un sitio público',
+  'he tenido un trío',
+  'me he acostado con alguien que no me atraía solo por aburrimiento',
+  'he tenido un rollo con alguien en una boda',
+  'he hecho algo que nunca le contaría a mi familia',
+  'me he enrollado con más de una persona el mismo fin de semana',
+  'he mentido sobre mi estado sentimental para ligar',
+  'he mandado un mensaje subido de tono a alguien equivocado',
+  'he tenido un rollo que duró menos de una hora',
+  'me han dicho que soy bueno/a en la cama y me lo creí demasiado',
+  'he usado una excusa absurda para irme de la cama de alguien',
+  'me he arrepentido de algo el día siguiente más de tres veces',
+  'he tenido una conversación subida de tono en horario de trabajo',
+  'he usado una app de citas solo para subir el ego',
+  'he tenido un rollo con alguien cuyo nombre nunca supe',
+  'me he acostado con alguien solo por la tensión acumulada',
+  'he tenido un encuentro en un lugar donde no debería haber pasado',
+  'me he despertado y no recordaba exactamente qué había pasado',
+  'he recibido un mensaje que me dejó sin palabras a las 3am',
+  'me han propuesto algo que no esperaba y dije que sí',
+  'he tenido que esconderme de alguien con quien algo había pasado',
+  'me han escrito a las 4am y respondí',
+  'he protagonizado una situación que si se supiera cambiaría todo',
+  'he hecho algo impulsivo que no pensaba hacer esa noche',
+  'he tenido algo con alguien y al día siguiente actuamos como si nada',
+  'me han seducido de una forma tan obvia que lo dejé pasar igual',
+  'he hecho algo en una fiesta que no habría hecho sobrio/a',
+  'he confesado algo en caliente que no debería haber dicho',
+  'me han pillado en una situación que no tenía explicación buena',
+  'he tenido que inventar una historia entera para cubrir lo que pasó',
+  'me han invitado a algo y sabía perfectamente lo que implicaba',
+  'he tenido algo con alguien que supuestamente era intocable',
+  'he quedado con alguien solo por morbo sin ninguna intención seria',
+  'he recibido algo comprometido de alguien que no esperaba',
+  'he hecho algo picante en casa de otra persona',
+  'he tenido un rollo con alguien de un viaje que nunca he contado',
+  'me han dicho algo tan directo que no supe qué responder',
+  'he actuado solo por tensión acumulada sin pensarlo demasiado',
+  // Más cotidianas
+  'he comido en el baño para que no me pidieran',
+  'he fingido entender una broma que no entendí',
+  'he pasado más de una hora eligiendo qué poner de fondo de pantalla',
+  'he respondido "en camino" estando aún en la cama',
+  'he llorado en el coche antes de entrar a algún sitio para recomponerme',
+  'he guardado un número con nombre falso para que no lo viera nadie',
+  'he ensayado delante del espejo algo que iba a decir',
+  'he visto una serie entera en un día y me he sentido mal por ello',
+  'he dejado un mensaje en visto durante más de 3 días sin razón real',
+  'he comprado algo "para la casa" que era claramente para mí',
+  'he mentido sobre lo que había comido ese día',
+  'he tenido ganas de irme a mitad de un plan pero no dije nada',
+  'he buscado a alguien que no conozco solo porque salía en la historia de otro',
+  'he fingido no recordar algo que recordaba perfectamente',
+  'he mandado un mensaje y luego fingido que había sido sin querer',
+  'he escuchado una conversación que no era para mí y no dije nada',
+  'me he emocionado con un anuncio y lo he negado',
+  'he pedido consejo sabiendo que iba a hacer lo contrario',
+  'he dormido con el móvil encima por si llegaba un mensaje concreto',
+  'he repasado mentalmente una conversación más de 10 veces después de tenerla',
+  // Más salseo
+  'he mandado un mensaje de madrugada que luego borré antes de que lo leyeran',
+  'he seguido a alguien en redes para que se diera cuenta de que existía',
+  'he puesto una historia solo para ver si alguien concreto la veía',
+  'he cambiado de opinión sobre alguien en cuanto me prestó atención',
+  'he tenido conversaciones paralelas con dos personas y les he contado lo mismo',
+  'he mentido sobre con quién había estado',
+  'he hecho algo solo para tener algo que contar',
+  'me han gustado dos personas a la vez y no he hecho nada con ninguna',
+  'he tenido más química con alguien en un viaje que con nadie en años',
+  'he actuado como si no me importara alguien que me importaba mucho',
+  'he bloqueado a alguien y lo he desbloqueado al día siguiente',
+  'he llegado tarde a algo aposta para no ser el primero',
+  'he tenido sentimientos por alguien de quien nunca lo diría en voz alta',
+  'he ignorado señales evidentes porque me convenía ignorarlas',
+  'he estado en una relación más tiempo del que debería por comodidad',
+  // Más hot
+  'he tenido un rollo en un sitio de trabajo o de estudios',
+  'he mandado algo sin pensar y tardé días en superarlo',
+  'he tenido tensión con alguien durante semanas antes de que pasara algo',
+  'me han besado sin esperarlo y no paré',
+  'he hecho algo en un viaje que no habría hecho en casa',
+  'he tenido algo con alguien y al día siguiente lo negué todo',
+  'he quedado con alguien sabiendo perfectamente cómo iba a acabar',
+  'he actuado como si nada después de algo que lo cambió todo',
+  'he tenido una conversación a las 5am que nunca debería haber tenido',
+  'me han dicho algo al oído que todavía recuerdo',
+  // Pack extra cotidiano
+  'he sacado el móvil en una cena para parecer ocupado/a',
+  'he vuelto a dormir después de apagar la alarma más de 4 veces seguidas',
+  'he fingido no tener wifi para no contestar algo',
+  'me he gastado más en delivery en un mes que en el super',
+  'he empezado un curso online y lo he abandonado antes de la segunda clase',
+  'he copiado en un examen o trabajo',
+  'he usado la misma excusa dos veces con la misma persona',
+  'he llegado tarde a algo importante por no encontrar qué ponerme',
+  'he tenido una conversación entera por WhatsApp estando en la misma habitación',
+  'me he inventado que no tenía cambio para no ayudar a alguien',
+  'he dicho que sí sin haber escuchado bien la pregunta',
+  'me he dormido en el baño para descansar de la gente',
+  'he dado un nombre falso en una situación social para no complicarme',
+  'he fingido que ya había visto algo que acaban de explicarme',
+  'me he ido a dormir con hambre para no tener que cocinar',
+  'he pasado más tiempo eligiendo serie que viendo la serie',
+  'he sacado foto a la comida antes de probarla',
+  'he llegado al final de TikTok y he empezado otra vez',
+  'he intentado hacer algo que vi en un tutorial y ha salido fatal',
+  'he comprado algo de segunda mano y nunca lo he usado',
+  // Pack extra salseo
+  'he revisado si alguien me ha borrado de Instagram o de sus mejores amigos',
+  'he creado una cuenta secundaria para ver stories sin que lo supieran',
+  'he mandado una foto de algún plan para dar envidia',
+  'he borrado comentarios míos en redes porque no tuvieron los likes que esperaba',
+  'he buscado en redes a la nueva pareja de un ex antes que a nada',
+  'he entrado al perfil de alguien que no conozco durante más de 20 minutos',
+  'he dejado de seguir a alguien para ver si se daba cuenta',
+  'he guardado una conversación comprometida en una carpeta oculta',
+  'he tenido sentimientos por alguien que me trató mal y lo sé',
+  'he intentado poner celos a alguien de forma consciente',
+  'he dado un like accidental a alguien y he entrado en pánico',
+  'he esperado a que alguien entrara en línea para ver si me escribía',
+  'he mirado las historias de alguien que tengo bloqueado desde otro perfil',
+  'he enviado un audio largo sabiendo que el otro no los escucha',
+  'he cotilleado el perfil de alguien y luego le he dado like sin querer',
+  // Pack extra picante
+  'me han escrito algo comprometido en mitad de una reunión o clase',
+  'he tenido un rollo que empezó con una apuesta',
+  'me han liado en algo que empezó como un "vamos un momento"',
+  'he dicho que era la primera vez cuando no lo era',
+  'me han propuesto algo que habría dicho que no sobrio/a y dije que sí',
+  'he quedado con alguien a las 3am y he dicho que iba a dar un paseo',
+  'he fingido que me había llamado alguien para salir de una situación incómoda',
+  'he tenido una situación que no pienso contar nunca aunque me lo pregunten directamente',
+  'he ignorado a alguien el día siguiente después de algo intenso',
+  'he tenido algo con alguien del grupo de amigos que nadie sabe',
+];
+
+const nuncaState = { deck: [], idx: 0 };
+
+function initNunca() {
+  nuncaState.deck = shuffle([...ALL_NUNCA]);
+  nuncaState.idx = 0;
+  showNuncaCard();
+}
+
+function showNuncaCard() {
+  const d = nuncaState.deck, i = nuncaState.idx;
+  document.getElementById('nunca-count').textContent = `Carta ${i + 1} de ${d.length}`;
+  document.getElementById('nunca-text').textContent = d[i];
+}
+
+function nextNunca() {
+  nuncaState.idx = (nuncaState.idx + 1) % nuncaState.deck.length;
+  if (nuncaState.idx === 0) nuncaState.deck = shuffle([...ALL_NUNCA]);
+  showNuncaCard();
+}
+
+// ═══════════════════════════════════════════
+//  PROBABLE — todas mezcladas
+// ═══════════════════════════════════════════
+const ALL_PROB = [
+  // Cotidiano / gracioso
+  'se haría un tatuaje en un lugar ridículo',
+  'mandaría un mensaje borracho/a a su ex',
+  'acabaría en las noticias por algo absurdo',
+  'se comería una pizza entera solo/a',
+  'olvidaría el cumpleaños de su pareja',
+  'se perdería yendo a un sitio que ya conoce',
+  'montaría una empresa y la quebraría en una semana',
+  'se haría viral por tropezar en público',
+  'adoptaría 10 gatos sin avisar',
+  'gastaría todos sus ahorros en un capricho',
+  'se apuntaría a un reality show',
+  'lloraría en una primera cita',
+  'sería el primero en rendirse en un juego de mesa',
+  'acabaría casándose con alguien que conoció hace 48h',
+  'saldría en pijama al supermercado sin darse cuenta',
+  'rompería algo caro y lo escondería',
+  'daría dinero a un estafador por pena',
+  'se quedaría dormido/a en su propia fiesta de cumpleaños',
+  'cancelaría planes por ver una serie',
+  'dejaría el trabajo para hacer algo totalmente inesperado',
+  'se comería el postre antes que el plato',
+  'montaría un drama por una bobada en WhatsApp',
+  'se haría influencer si pudiera',
+  'se perdería en IKEA más de una hora',
+  'pasaría la aspiradora a las 3am',
+  'respondería un "hola" con un audio de 4 minutos',
+  'llamaría a su madre llorando por una peli',
+  'se haría un selfie antes de ir a urgencias',
+  'discutiría con un desconocido en los comentarios de internet',
+  'perdería el móvil mientras lo está usando',
+  'empezaría a ver una serie de 8 temporadas para relajarse',
+  'llegaría el primero a una cita y esperaría dando vueltas fuera',
+  'usaría el horno como cajón de almacenamiento',
+  'diría "lo hago luego" y no lo haría nunca',
+  'pondría la alarma 10 veces antes de levantarse',
+  'contestaría al jefe fuera de horario laboral sin querer',
+  'llamaría a alguien por el nombre de su ex sin querer',
+  'acabaría durmiendo en el sofá después de decir "solo cierro los ojos"',
+  'preguntaría cómo se llama una canción tarareándola fatal',
+  'dormiría con los calcetines puestos',
+  'se compraría ropa deportiva que nunca usaría para deporte',
+  'mandaría el mismo meme dos veces al mismo chat',
+  'acabaría en el hospital por un accidente doméstico evitable',
+  'ordenaría la habitación moviéndolo todo debajo de la cama',
+  'inventaría una enfermedad para no ir a algo',
+  'seguiría una cuenta de animales durante una hora sin darse cuenta',
+  'buscaría en Google algo que podría preguntar directamente',
+  'compraría 10 cosas en el super y olvidaría la que iba a buscar',
+  'llevaría doble vida sin que nadie se enterara durante meses',
+  'se apuntaría a algo sin leer lo que firma',
+  'se haría una foto en el espejo antes de salir y no le gustaría ninguna',
+  'compraría algo online a las 2am que no necesita para nada',
+  'mandaría una voz de más de 2 minutos como respuesta a un meme',
+  'llegaría tarde a algo importante por quedarse mirando el móvil',
+  'abriría la nevera 5 veces seguidas sin coger nada',
+  'se iría de cañas y acabaría a las 6am sin haberlo planeado',
+  'dejaría la ropa en la lavadora dos días antes de meterla a secar',
+  'diría "5 minutos más" y se quedaría dormido/a 2 horas',
+  'se haría ilusiones con algo y luego negaría que le importaba',
+  'pasaría toda una tarde buscando qué ver y no vería nada',
+  'mandaría capturas de pantalla que no debería a quien no toca',
+  // Salseo
+  'escribiría a su ex a las 3am un viernes',
+  'ligaría con el/la amigo/a de su pareja',
+  'coquetearía con alguien solo para ver si puede',
+  'usaría a alguien para olvidar a otra persona',
+  'ligaría con alguien en una boda siendo el/la invitado/a',
+  'haría algo arriesgado solo por impresionar a alguien',
+  'diría "te quiero" primero sin querer',
+  'se enrollaría con el ex de su mejor amigo/a',
+  'ligaría con alguien solo para no pagar la cuenta',
+  'haría ghosting a alguien después de tres citas',
+  'quedaría con alguien solo para no estar solo/a',
+  'usaría una foto de hace 5 años en sus apps de citas',
+  'seguiría hablando con alguien aunque ya tuviera pareja',
+  'dejaría en visto a alguien que le gusta para parecer ocupado/a',
+  'hablaría de su ex en la primera cita sin poder evitarlo',
+  'le daría un número de teléfono falso a alguien',
+  'diría "somos solo amigos" cuando claramente no lo son',
+  'saldría con alguien solo porque es guapo/a aunque no le guste nada',
+  'buscaría a un ex en cada persona nueva que conoce',
+  'haría algo para dar envidia a un ex en redes sociales',
+  'mandaría algo y lo borraría sabiendo que ya lo han leído',
+  'llamaría a su ex después de una noche de fiesta',
+  'inventaría un plan para coincidir con alguien que le gusta',
+  'fingería no importarle algo que le importa muchísimo',
+  'mandaría una captura de pantalla de algo que no debía',
+  'mandaría un meme para romper la tensión sexual',
+  'haría like a alguien a las 3am de forma completamente consciente',
+  'se inventaría una historia para parecer más interesante',
+  'guardaría conversaciones para volver a leerlas',
+  'haría un storie para que lo vea una persona concreta',
+  'investigaría a alguien durante horas antes de una primera cita',
+  'mandaría un audio comprometido al grupo familiar',
+  'seduciría al camarero/a para conseguir descuento',
+  'haría una lista de pros y contras antes de responder un mensaje',
+  'se quedaría con el número de alguien aunque no le gustara',
+  'ligaría con alguien en un lugar totalmente inapropiado',
+  'acabaría ligando con alguien del trabajo después de una cena de empresa',
+  'empezaría un drama de celos que no tiene sentido',
+  'fingiría tener pareja para dar pena y ligar',
+  'mandaría una foto "sin querer" para llamar la atención',
+  'cogería el móvil de su pareja para ver con quién habla',
+  'borraría pruebas de su historial antes de dejar el móvil a alguien',
+  'usaría a un amigo/a como excusa para ver a alguien',
+  'ligaría con alguien en un funeral',
+  // Hot
+  'ha tenido un encuentro en un baño de discoteca',
+  'mandaría fotos sin que se lo pidan',
+  'se enrollaría con alguien en casa de otra persona',
+  'tendría un rollo sin preguntar el nombre',
+  'habría hecho algo picante en un sitio público',
+  'confesaría fantasías que nadie esperaba',
+  'habría tenido dos rollos en el mismo día',
+  'habría usado una app de citas para algo distinto a citas',
+  'se aburriría antes de que acabara la noche y buscaría plan B',
+  'habría salido de una situación picante con una excusa de trabajo',
+  'habría tenido sentimientos después de lo que se supone que era solo una noche',
+  'habría enviado algo que nunca debería haberse enviado',
+  'habría quedado dos veces el mismo día con personas diferentes',
+  'habría mentido sobre su historial para parecer más inocente',
+  'se habría enrollado con alguien en un viaje de trabajo',
+  'habría actuado por pura tensión sexual acumulada',
+  'haría algo atrevido si supiera que no habría consecuencias',
+  'habría estado en una situación que todavía no ha contado a nadie',
+  'habría ignorado completamente a alguien después de algo intenso',
+  'habría tenido algo con alguien que le sorprendió a sí mismo/a',
+  'habría confundido morbo con sentimientos más de una vez',
+  'habría perdido el control en una situación que se suponía inocente',
+  'habría dicho sí a algo que debería haber dicho que no',
+  'habría hecho algo con alguien que juraba que nunca pasaría',
+  'habría necesitado inventar una coartada después de una noche',
+  'habría vivido una situación que todavía no sabe cómo definir',
+  'habría tenido una conversación que cambió todo sin que nadie lo supiera',
+  'haría algo ahora mismo que nadie del grupo esperaría de él/ella',
+  'tendría una historia sin contar que cambiaría cómo lo/la ven los demás',
+  'habría protagonizado el momento más tenso de los últimos meses',
+  // Más cotidianas
+  'se quedaría sin batería en el peor momento posible',
+  'perdería las llaves de casa más de dos veces en un mes',
+  'se apuntaría a algo sin leer la letra pequeña',
+  'compraría entradas para algo y luego no iría',
+  'dejaría los platos para el día siguiente',
+  'se haría un plan solo para luego no apetecerle nada',
+  'se iría de shopping y volvería con cosas que no necesitaba',
+  'se quedaría mirando el techo pensando en algo que pasó hace 3 años',
+  'guardaría ropa que no se pone "por si acaso"',
+  'miraría el móvil nada más despertarse antes incluso de levantarse',
+  'llegaría tarde a su propia boda',
+  'se arrepentiría de un corte de pelo en menos de 24 horas',
+  'pasaría la tarde entera viendo vídeos cortos sin darse cuenta',
+  'respondería un email urgente tres días después',
+  'diría "no bebo hoy" y acabaría siendo el último en irse',
+  'se marcharía a vivir fuera si pudiera sin pensarlo dos veces',
+  'se gastaría más dinero en una noche de lo que tenía planeado',
+  'aceptaría un plan que odia solo para no quedarse fuera',
+  'se haría una foto con alguien famoso aunque no supiera quién es',
+  'lloraría en un aeropuerto por algo que no tiene que ver con el viaje',
+  // Más salseo
+  'ha mandado una captura de pantalla a quien no toca',
+  'ha puesto una historia solo para que la vea alguien concreto',
+  'ha creado un drama en un grupo de WhatsApp que no hacía falta',
+  'ha fingido que no le importaba algo que le estaba comiendo por dentro',
+  'ha tenido más química con alguien en un viaje que en meses de su vida normal',
+  'ha vuelto a ver el perfil de alguien después de bloquearlo',
+  'ha actuado como si no recordara algo que recordaba perfectamente',
+  'ha dicho "estoy bien" cuando era lo contrario',
+  'se ha enamorado de alguien en el peor momento posible',
+  'ha dejado un mensaje en visto para tener ventaja en la situación',
+  'ha ignorado una señal obvia porque le convenía ignorarla',
+  'ha estado en una situación incómoda y no ha dicho nada para no montar drama',
+  'ha tenido sentimientos por alguien que no debería',
+  'ha hecho algo solo para ver cómo reaccionaba alguien',
+  'ha mandado un mensaje y luego fingido que había sido sin querer',
+  // Más hot
+  'ha tenido tensión con alguien durante semanas sin que pasara nada',
+  'ha tenido algo con alguien de un viaje que nunca ha contado',
+  'se ha enrollado con alguien en la última persona que esperaba',
+  'ha actuado como si nada después de algo que lo cambió todo',
+  'ha tenido un rollo en un sitio completamente inapropiado',
+  'ha quedado con alguien a sabiendas de cómo iba a acabar',
+  'ha tenido más de una situación sin resolver al mismo tiempo',
+  'ha hecho algo una noche que cambió la dinámica con alguien para siempre',
+  'ha tenido una conversación de madrugada que nunca debería haber tenido',
+  'ha sido el/la que más ha complicado una situación que era sencilla',
+  // Pack extra cotidiano
+  'llegaría a una fiesta sorpresa con la persona sorprendida',
+  'se haría un tattoo en la cara si pudiera borrarlo fácil',
+  'montaría un negocio de algo rarísimo y le funcionaría',
+  'vendería su colección entera de algo por un capricho',
+  'se haría pasar por otra persona en una situación incómoda',
+  'haría una compra impulsiva a las 4am y se arrepentiría a las 9',
+  'cometería un error garrafal en su primer día de trabajo nuevo',
+  'acabaría llorando en karaoke cantando algo de los 2000',
+  'diría "te quiero" sin querer al camarero al despedirse',
+  'se presentaría al trabajo con la ropa del revés sin darse cuenta',
+  'perdería el vuelo por estar mirando el móvil en la puerta',
+  'comprometería el grupo entero con una promesa que no puede cumplir',
+  'adoptaría un animal sin decírselo a su pareja hasta que llega a casa',
+  'acabaría siendo el más borracho de la boda sin ser el novio/la novia',
+  'se haría amigo/a del camarero y dejaría todos sus datos personales',
+  'se apuntaría a un maratón sin haber corrido nunca y acabaría en camilla',
+  // Pack extra salseo
+  'tiene alguien guardado con un nombre clave para que no lo reconozca su pareja',
+  'ha borrado conversaciones antes de dejar el móvil a alguien',
+  'ha hecho screenshot a algo que no debería y lo tiene guardado',
+  'tiene un alter ego en redes que nadie del grupo conoce',
+  'ha seguido de cerca la vida de alguien que ni le cae bien',
+  'todavía tiene fotos de un ex guardadas aunque diga que no',
+  'ha creado un drama en un grupo de WhatsApp solo por aburrimiento',
+  'ha enviado un mensaje y apagado el teléfono inmediatamente',
+  'ha confesado algo por WhatsApp que nunca diría a la cara',
+  'ha abierto un perfil de citas "solo para ver" más de tres veces',
+  // Pack extra hot
+  'ha tenido algo con alguien del grupo que nadie sabe',
+  'ha tenido un rollo y fingió que no había pasado nada al día siguiente',
+  'haría algo atrevido si supiera que no queda registro de nada',
+  'ha quedado con alguien a una hora ridícula con una excusa absurda',
+  'ha mentido sobre dónde estaba para tapar una situación comprometida',
+  'ha tenido tensión con alguien del grupo que aún no ha explotado',
+  'se habría liado con alguien del trabajo si no hubiera consecuencias',
+  'ha tenido dos planes paralelos la misma noche y lo ha gestionado',
+];
+
+const probState = { deck: [], idx: 0 };
+
+function initProb() {
+  probState.deck = shuffle([...ALL_PROB]);
+  probState.idx = 0;
+  showProbCard();
+}
+
+function showProbCard() {
+  const d = probState.deck, i = probState.idx;
+  document.getElementById('prob-count').textContent = `Carta ${i + 1} de ${d.length}`;
+  document.getElementById('prob-text').textContent = d[i];
+}
+
+function nextProb() {
+  probState.idx = (probState.idx + 1) % probState.deck.length;
+  if (probState.idx === 0) probState.deck = shuffle([...ALL_PROB]);
+  showProbCard();
+}
+
+// ═══════════════════════════════════════════
+//  RULETA
+// ═══════════════════════════════════════════
+const WHEEL_COLORS = ['#7c6af7','#2ecf9a','#f76a6a','#ff8c42','#f7c948','#5bc4f7','#c96af7','#6af7b8','#f76ab0','#a0f76a'];
+let wheelSpinning = false;
+let wheelCurrentAngle = 0;
+
+function initWheel() {
+  document.getElementById('winner-display').innerHTML = '';
+  wheelCurrentAngle = 0;
+  drawWheel(0);
+}
+
+function drawWheel(rotation) {
+  const canvas = document.getElementById('wheel-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const players = globalPlayers.length >= 2 ? globalPlayers : ['Jugador 1', 'Jugador 2', 'Jugador 3'];
+  const n = players.length;
+  const R = 150, cx = 160, cy = 160;
+  const arc = (2 * Math.PI) / n;
+  ctx.clearRect(0, 0, 320, 320);
+
+  for (let i = 0; i < n; i++) {
+    const startAngle = rotation + i * arc;
+    const endAngle = startAngle + arc;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R, startAngle, endAngle);
+    ctx.closePath();
+    ctx.fillStyle = WHEEL_COLORS[i % WHEEL_COLORS.length];
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(startAngle + arc / 2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 13px Syne, sans-serif';
+    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+    ctx.shadowBlur = 4;
+    const label = players[i].length > 10 ? players[i].slice(0, 9) + '…' : players[i];
+    ctx.fillText(label, R - 10, 5);
+    ctx.restore();
+  }
+
+  // Center circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, 18, 0, 2 * Math.PI);
+  ctx.fillStyle = '#0a0a0f';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Pointer triangle at top
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - R - 4);
+  ctx.lineTo(cx - 10, cy - R + 16);
+  ctx.lineTo(cx + 10, cy - R + 16);
+  ctx.closePath();
+  ctx.fillStyle = '#f7c948';
+  ctx.fill();
+}
+
+function spinWheel() {
+  if (wheelSpinning) return;
+  if (globalPlayers.length < 2) { alert('Añade al menos 2 jugadores'); return; }
+  wheelSpinning = true;
+  document.getElementById('spin-btn').disabled = true;
+  document.getElementById('winner-display').innerHTML = '';
+
+  const players = globalPlayers;
+  const n = players.length;
+  const arc = (2 * Math.PI) / n;
+  const extraSpins = (5 + Math.floor(Math.random() * 5)) * 2 * Math.PI;
+  const targetOffset = Math.random() * 2 * Math.PI;
+  const totalRotation = extraSpins + targetOffset;
+  const duration = 4000;
+  const start = performance.now();
+  const startAngle = wheelCurrentAngle;
+
+  function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
+
+  function frame(now) {
+    const elapsed = now - start;
+    const t = Math.min(elapsed / duration, 1);
+    const currentRot = startAngle + totalRotation * easeOut(t);
+    drawWheel(currentRot);
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      wheelCurrentAngle = currentRot % (2 * Math.PI);
+      // Pointer is at top = -PI/2 in canvas coords.
+      // Slices start at wheelCurrentAngle + i*arc. Find which slice contains -PI/2.
+      const pointerAngle = -Math.PI / 2;
+      const normalized = (((pointerAngle - wheelCurrentAngle) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+      const winnerIdx = Math.floor(normalized / arc) % n;
+      const winner = players[winnerIdx];
+      document.getElementById('winner-display').innerHTML =
+        `<div class="winner-box"><p class="winner-label">¡Le ha tocado a!</p><p class="winner-name">${winner} 🎉</p></div>`;
+      wheelSpinning = false;
+      document.getElementById('spin-btn').disabled = false;
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+// ═══════════════════════════════════════════
+//  VERDAD O RETO
+// ═══════════════════════════════════════════
+const VERDADES = shuffle([
+  '¿Cuál es la decisión más impulsiva que has tomado en el último año?',
+  '¿Qué es lo que más te asusta del futuro ahora mismo?',
+  '¿Hay algo que hayas hecho por dinero o por conveniencia que no te enorgullece?',
+  '¿Cuál es la relación más complicada que tienes ahora mismo y por qué?',
+  '¿Cuándo fue la última vez que lloraste de verdad y por qué?',
+  '¿Cuál es la mayor mentira que mantienes activa a día de hoy?',
+  '¿Hay alguien con quien hayas cortado el contacto y en el fondo te arrepientas?',
+  '¿Qué es lo que más te cuesta admitir de ti mismo/a?',
+  '¿Cuál es la conversación más difícil que tienes pendiente con alguien?',
+  '¿Qué harías diferente si pudieras repetir el último año?',
+  '¿Cuál es el mayor error que has cometido en una relación y qué aprendiste?',
+  '¿Hay algo que estés evitando afrontar en tu vida ahora mismo?',
+  '¿Cuándo fue la última vez que hiciste algo solo por miedo a lo que pensarían?',
+  '¿Cuál fue la última vez que actuaste movido/a por los celos?',
+  '¿Qué es lo que más echas de menos de una versión anterior de ti mismo/a?',
+  '¿Cuál es la cosa que más te cuesta perdonar en una persona?',
+  '¿Qué es lo que más te da miedo que descubran de ti?',
+  '¿Has tratado mal a alguien que no se lo merecía y lo reconocerías?',
+  '¿Hay alguien en tu vida a quien le deberías una disculpa que aún no has dado?',
+  '¿Cuál es la decisión que más veces has pospuesto por miedo?',
+  '¿Qué es lo que la gente suele malinterpretar de ti?',
+  '¿Cuándo fue la última vez que te sentiste solo/a de verdad aunque estuvieras rodeado/a de gente?',
+  '¿Qué es lo que más te cuesta soltar de tu pasado?',
+  '¿Cuál es tu mayor red flag que poca gente conoce?',
+  '¿Qué hábito tuyo crees que hace daño a las personas que te rodean?',
+  '¿Cuál es el consejo que te darías a ti mismo/a hace 3 años?',
+  '¿Qué cosa de tu vida actual no le contarías a tu yo de hace 5 años?',
+  '¿Cuándo fue la última vez que hiciste algo que sabías que estaba mal y lo hiciste igual?',
+  '¿Qué es lo que más te da vergüenza reconocer que quieres en la vida?',
+  '¿Hay algo que hayas hecho esta semana que preferirías que no se supiera?',
+  '¿Cuál es la situación más incómoda de la que hayas tenido que salir con una excusa?',
+  '¿Qué es lo que más te cuesta pedir en una relación?',
+  '¿Cuál fue la última vez que metiste la pata de verdad y cómo lo gestionaste?',
+  '¿Tienes algún secreto que no le has contado ni a tus amigos más cercanos?',
+  '¿Qué es lo que más te cuesta admitir que necesitas de los demás?',
+  '¿Cuándo fue la última vez que actuaste de una forma de la que no te sientes orgulloso/a?',
+  '¿Qué es lo que más te cuesta decir en voz alta sobre ti mismo/a?',
+  '¿Hay algo que estés haciendo ahora mismo que sabes que no deberías?',
+  '¿Cuál es la mayor contradicción entre lo que dices que valoras y lo que realmente haces?',
+  '¿Qué es lo que más te ha costado superar en los últimos años?',
+  '¿Hay alguien de quien dependas emocionalmente más de lo que te gustaría reconocer?',
+  '¿Cuándo fue la última vez que te arrepentiste de haber dicho la verdad?',
+  '¿Qué es lo que más te cuesta gestionar cuando estás mal?',
+  '¿Cuál es la expectativa que tienes de tu vida que sabes que probablemente no vas a cumplir?',
+  '¿Hay algo que hayas hecho por impresionar a alguien que ahora te parece ridículo?',
+  '¿Qué es lo que más te da miedo de las relaciones serias?',
+  '¿Cuál fue la última vez que te comparaste con alguien y saliste perdiendo?',
+  '¿Hay algo de tu pasado que todavía afecta a cómo actúas ahora sin que la gente lo sepa?',
+  '¿Cuándo fue la última vez que pediste perdón de verdad y lo sentías?',
+  '¿Qué es lo que más te cuesta aceptar de cómo eres?',
+  '¿Hay algo que hayas callado en una discusión porque sabías que tenías razón pero era peor decirlo?',
+  '¿Cuál es la cosa de la que más te arrepientes de no haber hecho por miedo?',
+  '¿Qué es lo que más te avergüenza de cómo eras hace unos años?',
+  '¿Cuándo fue la última vez que mentiste a alguien que te importa?',
+  '¿Hay algo que hayas dejado ir por cobardía y que todavía piensas?',
+  '¿Qué es lo que más te cuesta pedir perdón?',
+  '¿Cuál es el momento en el que más has decepcionado a alguien que te importaba?',
+  '¿Hay algo que estés posponiendo en tu vida que sabes que tienes que hacer?',
+  '¿Cuándo fue la última vez que fuiste completamente honesto/a con alguien?',
+  '¿Qué es lo que más te da miedo de quedarte solo/a?',
+  '¿Cuál es la versión de ti mismo/a que más te cuesta mostrar?',
+  '¿Hay algo que hayas hecho solo para encajar que en realidad no querías hacer?',
+  '¿Cuándo fue la última vez que priorizaste a alguien por encima de ti mismo/a y te arrepentiste?',
+  '¿Qué es lo que más te cuesta soltar aunque sepas que deberías?',
+  '¿Cuál fue el momento en que más has actuado por orgullo en lugar de por lo que querías de verdad?',
+  '¿Hay alguien a quien hayas hecho daño sin pedirle perdón?',
+  '¿Qué es lo que más te cuesta decir en voz alta sobre lo que quieres de una relación?',
+  '¿Cuál es la cosa que más te daría vergüenza que descubriera alguien que acaba de conocerte?',
+  '¿Cuándo fue la última vez que te sentiste realmente perdido/a?',
+  '¿Hay algo de tu rutina actual que estás haciendo solo por inercia y que en realidad no te hace feliz?',
+  '¿Qué es lo que más te cuesta cambiar de ti mismo/a aunque sepas que deberías?',
+  // Nuevas verdades
+  '¿Hay alguien aquí a quien le tengas algo pendiente de decir que no has dicho?',
+  '¿Qué es lo que peor llevas de ti mismo/a cuando estás bajo presión?',
+  '¿Cuál es la cosa de la que más te avergüenzas que te guste?',
+  '¿Hay alguna historia de tu pasado que cambiaría la opinión que tienen de ti los del grupo?',
+  '¿Cuándo fue la última vez que envidiaste algo de alguien de los que están aquí?',
+  '¿Cuál es la mentira más elaborada que hayas construido y mantuvieras durante tiempo?',
+  '¿Hay algo de lo que te arrepientes no haber hecho mientras podías?',
+  '¿Qué harías si supieras con certeza que nadie del grupo se enteraría?',
+  '¿Cuándo fue la última vez que actuaste de forma egoísta y lo sabías?',
+  '¿Qué es lo que más te cuesta admitir que todavía te afecta?',
+  '¿Cuál es la decisión que más ha cambiado tu vida y la repetirías?',
+  '¿Hay algo que te haya dicho alguien que todavía no has podido olvidar?',
+  '¿Cuándo fue la última vez que perdiste el control de una situación?',
+  '¿Hay algo que hayas hecho y que no le cuentes ni a la persona más cercana?',
+  '¿Qué es lo que más te cuesta ser en pareja o en una relación cercana?',
+  '¿Hay algo que desearías que alguien del grupo supiera sin tener que decírselo?',
+  '¿Cuándo fue la última vez que te diste cuenta de que te habías equivocado completamente?',
+  '¿Qué es lo que más te da miedo que la gente note en ti cuando bajas la guardia?',
+  '¿Cuál es la cosa más rara que te ha dado por hacer cuando estabas solo/a?',
+  '¿Hay alguien en tu vida ahora mismo que te importa más de lo que demuestras?',
+  '¿Qué es lo que harías diferente en tu última relación o situación importante?',
+  '¿Cuándo fue la última vez que mentiste a alguien por protegerle y no fue lo correcto?',
+  '¿Cuál es la cosa que más te frena en la vida y de la que nadie sabe que te frena?',
+]);
+
+const RETOS = shuffle([
+  'Muéstrale al grupo la última conversación de WhatsApp que hayas tenido (la abres tú, el grupo mira)',
+  'Deja que el grupo lea tus últimas 5 búsquedas de Google',
+  'Di en voz alta algo que llevas tiempo queriendo decirle a alguien pero no te has atrevido',
+  'Muéstrale al grupo tu última foto del carrete sin filtro ni edición',
+  'Escribe un mensaje sincero a alguien de tus contactos y mándalo de verdad ahora',
+  'Deja que alguien del grupo abra tu Spotify y vea tu historial reciente',
+  'Di qué harías con un millón de euros siendo completamente honesto/a',
+  'Cuéntale al grupo algo que pasó en los últimos días que no ibas a contar',
+  'Lee en voz alta el último mensaje que enviaste a alguien que te importa',
+  'Di cuál es la mayor red flag que has ignorado en alguien y por qué',
+  'Hazle una pregunta directa a alguien del grupo que siempre has querido hacer',
+  'Confiesa algo que hiciste y por lo que nunca pediste perdón',
+  'Muestra tu pantalla de inicio del móvil al grupo durante 10 segundos',
+  'Di cuál es la cosa que más te avergüenza haber comprado o gastado dinero en ella',
+  'Confiesa algo que hayas hecho y que el grupo no esperaría de ti',
+  'Haz una valoración honesta de tu situación vital actual en menos de 1 minuto',
+  'Di cuál es el consejo que le darías a alguien del grupo sin que te lo haya pedido',
+  'Cuéntale al grupo cuál es el momento en que más has actuado por ego',
+  'Di qué es lo que más te cuesta admitir que quieres en la vida',
+  'Confiesa cuántas veces has chequeado el perfil de alguien esta semana',
+  'Di en voz alta qué es lo que más te da envidia de alguien de tu entorno',
+  'Lee el último mensaje que recibiste sin responder y explica por qué no has contestado',
+  'Di qué harías diferente esta noche si supieras que no hay consecuencias',
+  'Deja que alguien del grupo vea tus últimas 3 stories que has subido',
+  'Di cuál es la mentira que más veces has repetido hasta creerla',
+  'Cuenta algo que hiciste en solitario que nunca le has contado a nadie',
+  'Di cuál es la cosa de la que más orgulloso/a te sientes y que nunca dices en voz alta',
+  'Muestra el último audio que tienes guardado en el móvil y que no has mandado',
+  'Di cuál es la excusa que más has usado para evitar algo que en realidad te da miedo',
+  'Cuéntale al grupo qué es lo que más te da vergüenza de cómo eras hace unos años',
+  'Di qué es lo que más te cuesta pedir en una relación',
+  'Lee en voz alta la última nota que tienes escrita en el móvil',
+  'Di cuál fue la última vez que actuaste por orgullo y te costó caro',
+  'Confiesa algo que hayas pensado esta semana y que no le dirías a nadie en condiciones normales',
+  'Di qué es lo que más te da miedo que la gente descubra de ti',
+  'Cuéntale al grupo cuál es el momento del que más te arrepientes en el último año',
+  'Di en voz alta qué es lo que cambiarías de ti mismo/a si pudieras',
+  'Muestra al grupo el meme más raro que tengas guardado en el móvil',
+  'Di cuál es la cosa que más te cuesta soltar aunque sepas que deberías',
+  'Confiesa algo que hayas hecho solo para encajar y que en realidad no querías hacer',
+  'Di cuándo fue la última vez que decepcionaste a alguien que te importaba',
+  'Cuéntale al grupo algo que haces cuando estás solo/a que nunca harías delante de nadie',
+  'Di qué es lo que más te cuesta decir en voz alta sobre lo que quieres de tu vida',
+  'Deja que alguien del grupo elija una persona de tu lista de contactos y le mandas un mensaje que te dictan',
+  'Di en voz alta cuál es tu mayor inseguridad ahora mismo',
+  'Cuéntale al grupo la historia más vergonzosa que tienes de una noche de fiesta',
+  'Di qué es lo que más te sorprende de ti mismo/a cuando nadie te mira',
+  'Confiesa algo que hayas callado en una discusión porque sabías que era peor decirlo',
+  'Di cuál es la relación de tu vida que más ha cambiado cómo eres',
+  'Cuéntale al grupo algo positivo sobre ti mismo/a que nunca dices en voz alta',
+  'Di qué es lo primero que piensas cuando estás mal y no se lo dices a nadie',
+  'Muéstrale al grupo la última búsqueda que hiciste en Instagram o TikTok',
+  'Di cuál es la cosa que harías si supieras que nadie te va a juzgar',
+  'Cuéntale al grupo el momento en que más has fingido estar bien',
+  'Di qué es lo que más te cuesta cambiar de ti mismo/a aunque sepas que deberías',
+  'Confiesa algo que hayas hecho por impresionar a alguien que ahora te parece una tontería',
+  'Di en voz alta qué es lo que más te da miedo de las relaciones serias',
+  'Cuéntale al grupo cuándo fue la última vez que fuiste completamente honesto/a con alguien',
+  'Di qué es lo que más te cuesta pedir cuando realmente lo necesitas',
+  'Muestra al grupo el último voice note que hayas recibido',
+  'Di cuál fue el momento en que más has dudado de ti mismo/a y cómo saliste de ahí',
+  // Nuevos retos
+  'Abre tu galería y enseña la 10ª foto del carrete sin mirar antes cuál es',
+  'Llama o manda un audio ahora mismo a la persona que llevas más tiempo sin hablar',
+  'Di tres cosas positivas de alguien del grupo que nunca le has dicho en serio',
+  'Haz que alguien del grupo te elija una canción que tiene que cantar a capella ahora mismo',
+  'Lee el último estado o historia que tienes archivado sin borrar',
+  'Di cuál fue la última excusa que pusiste para no quedar con alguien y qué hacías realmente',
+  'Abre tu Spotify y pon la primera canción de "Escuchadas recientemente" para que todos la oigan',
+  'Deja que alguien del grupo revise tus notas del móvil durante 15 segundos',
+  'Di cuánto llevas sin hablar con la persona a la que más quisiste en el pasado',
+  'Reproduce el último vídeo que has grabado con tu cámara para el grupo',
+  'Hazle una imitación a alguien del grupo sin decir quién es, y el grupo adivina',
+  'Di una verdad incómoda sobre la noche de hoy que nadie ha dicho todavía',
+  'Escribe y manda ahora mismo un mensaje honesto al último número que tienes en recibidas',
+  'Cuéntale al grupo algo que llevas tiempo queriendo hacer y no te has atrevido',
+  'Muestra al grupo la última captura de pantalla de una conversación que tienes guardada',
+  'Di cuántas personas del grupo te caen distinto a como las tratas y sin decir nombres',
+  'Haz la mejor imitación posible de alguien famoso que el grupo tiene que adivinar',
+  'Deja que alguien del grupo te escriba un estado de WhatsApp que tendrás puesto 1 hora',
+  'Di en voz alta qué harías si tuvieras que elegir entre trabajo y amor esta semana',
+  'Abre el chat con tu mejor amigo/a y lee en voz alta el último mensaje que te mandó',
+]);
+
+const vrState = { playerIdx: 0, verdades: [], retos: [], verdadeIdx: 0, retoIdx: 0 };
+
+function initVerdad() {
+  vrState.playerIdx = 0;
+  vrState.verdades = shuffle([...VERDADES]);
+  vrState.retos = shuffle([...RETOS]);
+  vrState.verdadeIdx = 0;
+  vrState.retoIdx = 0;
+  showVrPlayer();
+}
+
+function showVrPlayer() {
+  document.getElementById('vr-current-player').textContent = globalPlayers[vrState.playerIdx];
+  document.getElementById('vr-choice-screen').style.display = 'block';
+  document.getElementById('vr-card-screen').style.display = 'none';
+}
+
+function vrPick(type) {
+  let text, pillClass, pillText, btnClass;
+  if (type === 'verdad') {
+    text = vrState.verdades[vrState.verdadeIdx % vrState.verdades.length];
+    vrState.verdadeIdx++;
+    if (vrState.verdadeIdx >= vrState.verdades.length) vrState.verdades = shuffle([...VERDADES]);
+    pillClass = 'card-pill pill-verd'; pillText = '💬 Verdad';
+    btnClass = 'action-btn btn-verd';
+  } else {
+    text = vrState.retos[vrState.retoIdx % vrState.retos.length];
+    vrState.retoIdx++;
+    if (vrState.retoIdx >= vrState.retos.length) vrState.retos = shuffle([...RETOS]);
+    pillClass = 'card-pill pill-prob'; pillText = '🔥 Reto';
+    btnClass = 'action-btn btn-prob';
+  }
+  document.getElementById('vr-pill').className = pillClass;
+  document.getElementById('vr-pill').textContent = pillText;
+  document.getElementById('vr-card-text').textContent = text;
+  document.getElementById('vr-next-btn').className = btnClass;
+  document.getElementById('vr-choice-screen').style.display = 'none';
+  document.getElementById('vr-card-screen').style.display = 'block';
+}
+
+function vrPass() {
+  vrState.playerIdx = (vrState.playerIdx + 1) % globalPlayers.length;
+  showVrPlayer();
+}
+
+function vrNext() {
+  vrState.playerIdx = (vrState.playerIdx + 1) % globalPlayers.length;
+  showVrPlayer();
+}
+
+// ═══════════════════════════════════════════
+//  YO SÍ / YO NO
+// ═══════════════════════════════════════════
+const YOSINO_CARDS = shuffle([
+  // Red flags
+  { text: '¿Fumar es red flag?', cat: 'Red flags' },
+  { text: '¿Es red flag no tener trabajo estable a los 25?', cat: 'Red flags' },
+  { text: '¿Saldrías con alguien que sigue siendo muy amigo/a de su ex?', cat: 'Red flags' },
+  { text: '¿Es red flag que alguien no tenga amigos de hace años?', cat: 'Red flags' },
+  { text: '¿Saldrías con alguien que no lee nada, ni libros ni artículos?', cat: 'Red flags' },
+  { text: '¿Es red flag que alguien no tenga buena relación con su familia?', cat: 'Red flags' },
+  { text: '¿Te echarías atrás si alguien tiene más de 3 ex serias?', cat: 'Red flags' },
+  { text: '¿Es red flag que alguien no cocine nada en absoluto?', cat: 'Red flags' },
+  { text: '¿Saldrías con alguien que gana mucho menos que tú?', cat: 'Red flags' },
+  { text: '¿Es red flag que alguien no tenga redes sociales?', cat: 'Red flags' },
+  { text: '¿Te importaría que tu pareja siguiera a muchas personas atractivas en redes?', cat: 'Red flags' },
+  { text: '¿Es red flag que alguien lleve más de un año sin trabajar?', cat: 'Red flags' },
+  { text: '¿Saldrías con alguien que tiene muy mal humor por las mañanas?', cat: 'Red flags' },
+  { text: '¿Es red flag no saber conducir a los 25?', cat: 'Red flags' },
+  { text: '¿Te importaría que tu pareja tuviera un amigo/a con quien tuvo algo en el pasado?', cat: 'Red flags' },
+  { text: '¿Es red flag que alguien solo hable de sí mismo?', cat: 'Red flags' },
+  { text: '¿Saldrías con alguien que nunca pide perdón aunque se equivoque?', cat: 'Red flags' },
+  { text: '¿Es red flag que alguien no tenga ningún hobbie o pasión?', cat: 'Red flags' },
+  { text: '¿Te frenaría saber que alguien tiene deudas?', cat: 'Red flags' },
+  { text: '¿Es red flag que alguien tarde horas en responder siempre?', cat: 'Red flags' },
+  { text: '¿Saldrías con alguien que come muy mal y no le importa nada?', cat: 'Red flags' },
+  { text: '¿Es red flag que alguien hable mal de todos sus ex?', cat: 'Red flags' },
+  { text: '¿Te importaría que tu pareja saliera de fiesta sin ti a menudo?', cat: 'Red flags' },
+  { text: '¿Es red flag que alguien no tenga ninguna ambición?', cat: 'Red flags' },
+  { text: '¿Saldrías con alguien que es muy celoso/a desde el principio?', cat: 'Red flags' },
+  // Preferencias / debates
+  { text: '¿Prefieres el mar a la montaña?', cat: 'Preferencias' },
+  { text: '¿Prefieres una noche en casa a una noche de fiesta?', cat: 'Preferencias' },
+  { text: '¿Pagarías más por calidad aunque sea más caro?', cat: 'Preferencias' },
+  { text: '¿Prefieres tener pocos amigos muy cercanos que muchos conocidos?', cat: 'Preferencias' },
+  { text: '¿Prefieres decir siempre la verdad aunque duela?', cat: 'Preferencias' },
+  { text: '¿Vivirías solo/a si pudieras?', cat: 'Preferencias' },
+  { text: '¿Prefieres las relaciones donde hay mucha independencia?', cat: 'Preferencias' },
+  { text: '¿Preferirías ganar menos y trabajar en algo que te gusta?', cat: 'Preferencias' },
+  { text: '¿Prefieres viajar a sitios nuevos o volver a los que ya conoces?', cat: 'Preferencias' },
+  { text: '¿Preferirías que te dijeran las cosas directamente aunque sea incómodo?', cat: 'Preferencias' },
+  { text: '¿Prefieres una relación apasionada aunque sea inestable a una estable pero sin chispa?', cat: 'Preferencias' },
+  { text: '¿Preferirías vivir en otra ciudad si pudieras empezar de cero?', cat: 'Preferencias' },
+  { text: '¿Prefieres hacer planes espontáneos a tenerlo todo organizado?', cat: 'Preferencias' },
+  { text: '¿Prefieres que tu pareja tenga su propio mundo aunque eso implique menos tiempo contigo?', cat: 'Preferencias' },
+  { text: '¿Prefieres quedarte con la duda o saber la verdad aunque sea mala?', cat: 'Preferencias' },
+  // Opiniones / debates
+  { text: '¿Crees que la amistad entre chico y chica sin historia es posible al 100%?', cat: 'Debate' },
+  { text: '¿Crees que es posible querer a dos personas a la vez?', cat: 'Debate' },
+  { text: '¿Crees que las relaciones abiertas pueden funcionar de verdad?', cat: 'Debate' },
+  { text: '¿Crees que hay que contarle a tu pareja todo lo del pasado?', cat: 'Debate' },
+  { text: '¿Crees que los celos en pequeña dosis son normales en una pareja?', cat: 'Debate' },
+  { text: '¿Crees que se puede ser feliz sin pareja a largo plazo?', cat: 'Debate' },
+  { text: '¿Crees que la gente cambia de verdad?', cat: 'Debate' },
+  { text: '¿Crees que el dinero da la felicidad, siendo realistas?', cat: 'Debate' },
+  { text: '¿Crees que es mejor vivir el momento que planificar el futuro?', cat: 'Debate' },
+  { text: '¿Crees que las primeras impresiones suelen ser acertadas?', cat: 'Debate' },
+  { text: '¿Crees que estar soltero/a a los 30 es una elección y no un problema?', cat: 'Debate' },
+  { text: '¿Crees que se puede mantener la amistad con alguien con quien tuviste algo?', cat: 'Debate' },
+  { text: '¿Crees que hay que perdonar siempre o hay cosas imperdonables?', cat: 'Debate' },
+  { text: '¿Crees que la distancia puede con cualquier relación si hay suficiente ganas?', cat: 'Debate' },
+  { text: '¿Crees que todo el mundo tiene una historia que lo justifica o hay gente simplemente mala?', cat: 'Debate' },
+  // Situaciones / yo haría
+  { text: '¿Le dirías a un/a amigo/a que su pareja le está siendo infiel?', cat: 'Situaciones' },
+  { text: '¿Bloquearías a alguien sin dar explicaciones si ya no quieres saber nada?', cat: 'Situaciones' },
+  { text: '¿Le preguntarías a alguien directamente si le gustas?', cat: 'Situaciones' },
+  { text: '¿Dejarías una relación por mensaje si ya no hay vuelta atrás?', cat: 'Situaciones' },
+  { text: '¿Irías a la boda de un ex si os lleváis bien?', cat: 'Situaciones' },
+  { text: '¿Le contarías a tu pareja si alguien te ha tirado los tejos?', cat: 'Situaciones' },
+  { text: '¿Dejarías tu trabajo actual si te surgiera algo mejor pero con más riesgo?', cat: 'Situaciones' },
+  { text: '¿Le dirías a alguien que me gusta aunque haya posibilidad de rechazo?', cat: 'Situaciones' },
+  { text: '¿Irías solo/a de viaje si nadie puede acompañarte?', cat: 'Situaciones' },
+  { text: '¿Perdonarías una infidelidad si la persona lo reconoce y lo lamenta?', cat: 'Situaciones' },
+  { text: '¿Le dirías a un/a amigo/a que su ex no era buena persona aunque ya lo hayan dejado?', cat: 'Situaciones' },
+  { text: '¿Quedarías con alguien de una app aunque no te convenciera del todo la foto?', cat: 'Situaciones' },
+  { text: '¿Dejarías de hablar con un amigo si su pareja te cae fatal?', cat: 'Situaciones' },
+  { text: '¿Le escribirías a alguien que te gustó hace años solo para ver qué pasa?', cat: 'Situaciones' },
+  { text: '¿Cambiarías de ciudad por una relación si todo lo demás estuviera bien?', cat: 'Situaciones' },
+  // Nuevas red flags
+  { text: '¿Es red flag que alguien no tenga nada suyo en casa después de meses?', cat: 'Red flags' },
+  { text: '¿Te echarías atrás si alguien cancela planes más de dos veces seguidas?', cat: 'Red flags' },
+  { text: '¿Es red flag que alguien nunca admita que se ha equivocado?', cat: 'Red flags' },
+  { text: '¿Te importaría que tu pareja hablara de sus ex en casi todas las conversaciones?', cat: 'Red flags' },
+  { text: '¿Es red flag que alguien sea muy diferente con sus amigos que contigo?', cat: 'Red flags' },
+  { text: '¿Te frenaría saber que alguien no ha tenido ninguna relación seria?', cat: 'Red flags' },
+  { text: '¿Es red flag que alguien no tenga ningún plan a futuro?', cat: 'Red flags' },
+  { text: '¿Saldrías con alguien que bebe mucho los fines de semana?', cat: 'Red flags' },
+  { text: '¿Es red flag que alguien revise constantemente tu móvil sin pedirte permiso?', cat: 'Red flags' },
+  { text: '¿Te importaría que tu pareja nunca pagara cuando salís juntos?', cat: 'Red flags' },
+  // Nuevas preferencias
+  { text: '¿Prefieres un trabajo estable y aburrido a uno emocionante pero incierto?', cat: 'Preferencias' },
+  { text: '¿Preferirías saber cómo vas a morir o no saberlo nunca?', cat: 'Preferencias' },
+  { text: '¿Prefieres pedir perdón que pedir permiso?', cat: 'Preferencias' },
+  { text: '¿Preferirías leer la mente de alguien o que alguien leyera la tuya?', cat: 'Preferencias' },
+  { text: '¿Prefieres una discusión directa a un silencio incómodo?', cat: 'Preferencias' },
+  { text: '¿Preferirías olvidar todos tus recuerdos malos o recordarlos todos?', cat: 'Preferencias' },
+  { text: '¿Prefieres que te quieran mucho y tú poco o al revés?', cat: 'Preferencias' },
+  { text: '¿Preferirías ser muy guapo/a sin dinero o muy rico/a sin atractivo?', cat: 'Preferencias' },
+  { text: '¿Prefieres dar un consejo que nadie te ha pedido o callarte aunque veas el error?', cat: 'Preferencias' },
+  { text: '¿Preferirías que te dijeran siempre la verdad aunque duela o que te protegieran con mentiras?', cat: 'Preferencias' },
+  // Nuevos debates
+  { text: '¿Crees que el ghosting es a veces la opción más honesta?', cat: 'Debate' },
+  { text: '¿Crees que hay una edad a partir de la cual ya no se puede cambiar de verdad?', cat: 'Debate' },
+  { text: '¿Crees que la mayoría de la gente tiene pareja por miedo a estar sola?', cat: 'Debate' },
+  { text: '¿Crees que el amor romántico es una construcción social o algo real?', cat: 'Debate' },
+  { text: '¿Crees que se puede querer a alguien y hacerle daño conscientemente?', cat: 'Debate' },
+  { text: '¿Crees que las redes sociales hacen más daño que bien en las relaciones?', cat: 'Debate' },
+  { text: '¿Crees que todo el mundo miente en las apps de citas?', cat: 'Debate' },
+  { text: '¿Crees que hay momentos en que la infidelidad es comprensible aunque no justificable?', cat: 'Debate' },
+  { text: '¿Crees que conocer a alguien por internet es igual de válido que en persona?', cat: 'Debate' },
+  { text: '¿Crees que la gente que dice "yo soy así" usa eso como excusa para no cambiar?', cat: 'Debate' },
+  // Nuevas situaciones
+  { text: '¿Le dirías a alguien del grupo algo que llevas tiempo queriendo decirle esta noche?', cat: 'Situaciones' },
+  { text: '¿Usarías una app de citas aunque tuvieras algo medio serio con alguien?', cat: 'Situaciones' },
+  { text: '¿Le contarías a tu mejor amigo/a algo que compromete a otra persona del grupo?', cat: 'Situaciones' },
+  { text: '¿Aceptarías un trabajo de sueño si implica alejarte de toda tu gente?', cat: 'Situaciones' },
+  { text: '¿Cortarías con alguien que quieres si sabes que no tiene futuro a largo plazo?', cat: 'Situaciones' },
+  { text: '¿Le dirías a alguien que le quieres si sabes que no te lo va a devolver?', cat: 'Situaciones' },
+  { text: '¿Leerías el diario o los mensajes de alguien cercano si supieras que no te pillarían?', cat: 'Situaciones' },
+  { text: '¿Irías a terapia si alguien cercano te dijera que cree que lo necesitas?', cat: 'Situaciones' },
+  { text: '¿Mantendrías una amistad con alguien que sabe un secreto tuyo importante?', cat: 'Situaciones' },
+  { text: '¿Preferirías saber que alguien te mintió o seguir sin saberlo si ya no cambia nada?', cat: 'Situaciones' },
+]);
+
+const yosinoState = { deck: [], idx: 0 };
+
+function initYosino() {
+  yosinoState.deck = shuffle([...YOSINO_CARDS]);
+  yosinoState.idx = 0;
+  showYosinoCard();
+}
+
+function showYosinoCard() {
+  const d = yosinoState.deck, i = yosinoState.idx;
+  document.getElementById('yosino-count').textContent = `Pregunta ${i + 1} de ${d.length}`;
+  document.getElementById('yosino-text').textContent = d[i].text;
+  document.getElementById('yosino-category').textContent = d[i].cat;
+}
+
+function nextYosino() {
+  yosinoState.idx = (yosinoState.idx + 1) % yosinoState.deck.length;
+  if (yosinoState.idx === 0) yosinoState.deck = shuffle([...YOSINO_CARDS]);
+  showYosinoCard();
+}
+// Registro del Service Worker para funcionamiento offline
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then((registration) => {
+        console.log('ServiceWorker registrado con éxito con el alcance:', registration.scope);
+      }, (err) => {
+        console.log('El registro del ServiceWorker ha fallado:', err);
+      });
+  });
+}
+</script>
+</body>
+</html>
